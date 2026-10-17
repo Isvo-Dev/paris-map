@@ -1,0 +1,189 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="referrer" content="strict-origin-when-cross-origin"><title>Paris map</title>
+<!-- Paris Bot Mini App (F18). Public code, no data: the places come from data.bin, decrypted with the #k= key. -->
+<script>window.__k=(location.hash.match(/[#&]k=([\w-]+)/)||[])[1]||sessionStorage.getItem('pk')||'';if(window.__k)sessionStorage.setItem('pk',window.__k)</script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<style>
+:root{--bg:var(--tg-theme-bg-color,#fff);--ink:var(--tg-theme-text-color,#1f1f1f);--sub:var(--tg-theme-hint-color,#70757a);
+--sec:var(--tg-theme-secondary-bg-color,#f1f3f4);--acc:var(--tg-theme-button-color,#1a73e8);--acc-ink:var(--tg-theme-button-text-color,#fff);
+--link:var(--tg-theme-link-color,#1a73e8);--line:color-mix(in srgb,var(--ink) 12%,transparent);
+--Food:#e8590c;--Nightlife:#7048e8;--Daytime:#1c7ed6;--Suggestions:#c99400;--h:var(--tg-viewport-stable-height,100vh)}
+.dark{--bg:var(--tg-theme-bg-color,#202124);--ink:var(--tg-theme-text-color,#e8eaed);--sub:var(--tg-theme-hint-color,#9aa0a6);--sec:var(--tg-theme-secondary-bg-color,#303134);--link:var(--tg-theme-link-color,#8ab4f8)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;height:100%;overflow:hidden}
+body{font:15px/1.35 -apple-system,system-ui,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+button,select,input{font:inherit;color:inherit}
+#map{position:fixed;inset:0;height:var(--h);background:var(--sec)}
+.dark .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}
+.top{position:fixed;top:0;left:0;right:0;z-index:500;padding:10px 10px 0;pointer-events:none}.top>*{pointer-events:auto}
+.search{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:24px;padding:0 6px 0 14px;height:46px;box-shadow:0 1px 6px rgba(0,0,0,.28)}
+.search input{flex:1;border:0;outline:0;background:transparent;font-size:16px;min-width:0}.search input::placeholder{color:var(--sub)}
+.search .x{border:0;background:none;color:var(--sub);font-size:18px;width:34px;height:34px;border-radius:50%;display:none}.search.has .x{display:block}
+.chips{display:flex;gap:6px;overflow-x:auto;margin:8px -10px 0;padding:0 10px 8px;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;display:flex;align-items:center;gap:6px;border:0;border-radius:16px;height:32px;padding:0 12px;background:var(--bg);font-size:14px;font-weight:500;box-shadow:0 1px 4px rgba(0,0,0,.2);white-space:nowrap}
+.chip.on{background-color:var(--acc);color:var(--acc-ink)}.chip .d{width:9px;height:9px;border-radius:50%}
+select.chip{appearance:none;-webkit-appearance:none;padding-right:26px;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 15px) 14px,calc(100% - 10px) 14px;background-size:5px 5px;background-repeat:no-repeat}
+select.chip.on{background-color:var(--acc)}
+.pin{width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);display:grid;place-items:center}
+.pin span{transform:rotate(45deg);font-size:13px}.pin.sel{width:36px;height:36px;border-width:3px}
+.me{width:18px;height:18px;border-radius:50%;background:#1a73e8;border:3px solid #fff;box-shadow:0 0 0 7px rgba(26,115,232,.22)}
+.fab{position:fixed;right:12px;z-index:550;width:48px;height:48px;border-radius:50%;border:0;background:var(--bg);color:var(--link);box-shadow:0 2px 8px rgba(0,0,0,.3);font-size:22px;display:grid;place-items:center;transition:bottom .2s}
+.fab.on{color:#fff;background:#1a73e8}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:600;height:var(--peek,190px);background:var(--bg);border-radius:16px 16px 0 0;box-shadow:0 -2px 14px rgba(0,0,0,.2);display:flex;flex-direction:column;transition:height .22s ease}
+.sheet.drag{transition:none}
+.grab{padding:8px 0 4px;touch-action:none;cursor:grab}.grab i{display:block;width:38px;height:4px;border-radius:2px;background:var(--line);margin:0 auto;background:color-mix(in srgb,var(--ink) 22%,transparent)}
+.hd{display:flex;align-items:center;gap:8px;padding:2px 16px 8px}.hd .cnt{flex:1;color:var(--sub);font-size:13.5px}
+.hd button,.lnk{border:0;background:none;color:var(--link);font-weight:600;font-size:14px;padding:6px 0}
+.body{flex:1;overflow-y:auto;padding:0 16px calc(16px + env(safe-area-inset-bottom));overscroll-behavior:contain}
+.card{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--line);cursor:pointer}
+.bar{width:4px;border-radius:2px;flex:none}.card .b{flex:1;min-width:0}
+.card h3{margin:0;font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.f{color:var(--sub);font-size:13px;margin-top:2px}.v{font-size:14px;margin-top:4px}
+.min{flex:none;width:46px;text-align:center;padding-top:1px}.min b{display:block;font-size:22px;line-height:1.1;font-weight:700}.min small{color:var(--sub);font-size:11px}
+.det h2{margin:4px 0 2px;font-size:21px}.det .tag{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--sub)}
+.det ul{margin:8px 0;padding-left:18px;font-size:14px}.det .src a{color:var(--link);margin-right:12px;font-size:14px}
+.acts{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}.acts button{border:0;border-radius:20px;height:38px;padding:0 16px;font-weight:600;font-size:14px;background:var(--sec);color:var(--link)}
+.acts button.p{background:var(--acc);color:var(--acc-ink)}
+.mv{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.mv p{margin:0 0 8px;font-size:13px;color:var(--sub)}
+.mv .acts button[disabled]{opacity:.45}
+.msg{position:fixed;inset:0;display:grid;place-items:center;padding:32px;text-align:center;color:var(--sub);z-index:900;background:var(--bg)}
+.toast{position:fixed;left:16px;right:16px;bottom:calc(var(--peek,190px) + 12px);z-index:800;background:var(--ink);color:var(--bg);border-radius:10px;padding:10px 14px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none}.toast.on{opacity:1}
+.empty{color:var(--sub);padding:18px 0;text-align:center}
+.leaflet-control-attribution{font-size:9px}.leaflet-top{top:110px}
+@media(prefers-reduced-motion:reduce){.sheet,.fab{transition:none}}
+</style></head><body>
+<div id="map"></div>
+<div class="top">
+ <div class="search" id="sbox"><span aria-hidden="true">🔍</span><input id="q" type="search" placeholder="Search places, types, vibes" autocomplete="off" aria-label="Search"><button class="x" id="qx" aria-label="Clear search">✕</button></div>
+ <div class="chips" id="chips"></div>
+</div>
+<button class="fab" id="near" aria-label="Near me">◎</button>
+<div class="sheet" id="sheet"><div class="grab" id="grab"><i></i></div><div class="hd" id="hd"></div><div class="body" id="body"></div></div>
+<div class="toast" id="toast" role="status"></div>
+<div class="msg" id="msg">Opening the map…</div>
+<script>
+'use strict';
+const tg=window.Telegram&&Telegram.WebApp, $=id=>document.getElementById(id);
+const ICON={Food:'🍽️',Nightlife:'🍸',Daytime:'🏛️',Suggestions:'✨'}, LISTS=['Food','Nightlife','Daytime','Suggestions'];
+const CODE={Food:'F',Nightlife:'N',Daytime:'D',Suggestions:'S'}, NAME={Suggestions:'Ideas'};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let D=null, P=[], map, marks={}, me=null, meLayer=null, sel=null;
+const F={l:'',c:'',a:'',p:'',o:'',q:'',w:''};
+if(tg){tg.ready();tg.expand();if(tg.colorScheme==='dark')document.documentElement.classList.add('dark');tg.onEvent('themeChanged',()=>document.documentElement.classList.toggle('dark',tg.colorScheme==='dark'))}
+else if(matchMedia('(prefers-color-scheme:dark)').matches)document.documentElement.classList.add('dark');
+
+async function load(){
+  if(!window.__k)throw new Error('Open the map from the 🗺 Paris map button in your chat with Paris Bot.');
+  const r=await fetch('data.bin',{cache:'no-store'});if(!r.ok)throw new Error('The map data is not there yet. Try again in a minute.');
+  const raw=Uint8Array.from(atob((await r.text()).trim()),c=>c.charCodeAt(0));
+  const kb=Uint8Array.from(atob(window.__k.replace(/-/g,'+').replace(/_/g,'/')+'='.repeat((4-window.__k.length%4)%4)),c=>c.charCodeAt(0));
+  const key=await crypto.subtle.importKey('raw',kb,'AES-GCM',false,['decrypt']);
+  try{return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:raw.slice(0,12)},key,raw.slice(12))))}
+  catch(e){throw new Error('This button\'s key is out of date. Send /start to Paris Bot for a fresh one.')}
+}
+function walk(p){if(!me)return null;const R=6371000,r=x=>x*Math.PI/180,a=Math.sin(r(p.lat-me[0])/2)**2+Math.cos(r(me[0]))*Math.cos(r(p.lat))*Math.sin(r(p.lng-me[1])/2)**2;const m=2*R*Math.asin(Math.sqrt(a));return{m:Math.round(m),min:Math.max(1,Math.round(m/80))}}
+const pricen=p=>(p.price||'').length;
+function filtered(){
+  const q=F.q.toLowerCase().trim();
+  let out=P.filter(p=>(!F.l||p.list===F.l)&&(!F.c||p.category===F.c)&&(!F.a||p.arr===F.a)&&(!F.p||(pricen(p)>0&&pricen(p)<=+F.p))
+    &&(!q||(p.name+' '+p.sub_type+' '+p.vibe+' '+p.arr).toLowerCase().includes(q))&&(!F.w||!me||walk(p).min<=+F.w));
+  const o=F.o||(me?'n':'r');
+  out.sort(o==='n'&&me?(a,b)=>walk(a).m-walk(b).m:o==='a'?(a,b)=>a.name.localeCompare(b.name):(a,b)=>(b.rating||0)-(a.rating||0));
+  return out;
+}
+function facts(p){return [p.sub_type,p.arr,p.price,p.rating&&p.rating+'★'+(p.reviews?' ('+p.reviews.toLocaleString()+')':'')].filter(Boolean).join(' · ')}
+function chips(){
+  const arrs=[...new Set(P.map(p=>p.arr).filter(Boolean))].sort((a,b)=>parseInt(a)-parseInt(b));
+  const sel=(id,label,opts)=>`<select class="chip${F[id]?' on':''}" data-f="${id}" aria-label="${label}"><option value="">${label}</option>${opts.map(([v,t])=>`<option value="${esc(v)}"${F[id]===String(v)?' selected':''}>${esc(t)}</option>`).join('')}</select>`;
+  $('chips').innerHTML=LISTS.map(l=>`<button class="chip${F.l===l?' on':''}" data-l="${l}"><span class="d" style="background:var(--${l})"></span>${NAME[l]||l}</button>`).join('')
+   +(me?sel('w','Any walk',[[10,'≤ 10 min walk'],[20,'≤ 20 min walk']]):'')
+   +sel('c','Type',[['Food','Food'],['Nightlife','Nightlife'],['Daytime','Daytime']])
+   +sel('a','Area',arrs.map(a=>[a,a]))+sel('p','Price',[[1,'€'],[2,'€€ or less'],[3,'€€€ or less']])
+   +sel('o','Sort',[...(me?[['n','Nearest']]:[]),['r','Best rated'],['a','A to Z']]);
+}
+function card(p){const w=walk(p);return `<div class="card" data-id="${esc(p.id)}">${w?`<div class="min"><b>${w.min}</b><small>min</small></div>`:''}<div class="bar" style="background:var(--${p.list})"></div><div class="b"><h3>${ICON[p.list]} ${esc(p.name)}</h3><div class="f">${esc(facts(p))}</div>${p.vibe?`<div class="v">${esc(p.vibe)}</div>`:''}</div></div>`}
+function renderList(){
+  sel=null;if(tg)tg.BackButton.hide();
+  const ps=filtered(), ids=new Set(ps.map(p=>p.id));
+  Object.entries(marks).forEach(([id,m])=>{const on=ids.has(id);if(on&&!map.hasLayer(m))m.addTo(map);if(!on&&map.hasLayer(m))map.removeLayer(m);m.setIcon(icon(m.p,false))});
+  const near=me&&!F.o?' · nearest first':'';
+  $('hd').innerHTML=`<span class="cnt">${ps.length} of ${P.length} places${near}</span><button id="send">Send me this list</button>`;
+  $('body').innerHTML=ps.map(card).join('')||'<div class="empty">Nothing matches. Clear a filter.</div>';$('body').scrollTop=0;
+  $('send').onclick=()=>act({a:'ls',f:{l:F.l,c:F.c,a:F.a,p:F.p,o:F.o==='a'?'':'r',q:F.q}});
+  chips();
+}
+function sources(p){return (p.sources||[]).filter(u=>/^https?:/.test(u)).map(u=>`<a href="${esc(u)}" data-out>${/instagram|tiktok|youtu/.test(u)?'▶ reel':'source'}</a>`).join('')}
+function detail(p){
+  sel=p;const w=walk(p);
+  Object.values(marks).forEach(m=>m.setIcon(icon(m.p,m.p.id===p.id)));
+  $('hd').innerHTML=`<button id="back">‹ All places</button><span class="cnt"></span>`;
+  $('body').innerHTML=`<div class="det"><span class="tag"><span class="d" style="width:9px;height:9px;border-radius:50%;background:var(--${p.list})"></span>${esc(D.lists[p.list]||p.list)}</span>
+   <h2>${esc(p.name)}</h2><div class="f">${esc(facts(p))}${w?` · <b style="color:var(--ink)">${w.min} min walk</b>`:''}</div>
+   ${p.vibe?`<div class="v">${esc(p.vibe)}</div>`:''}${p.hours?`<div class="f">${esc(p.hours)}</div>`:''}
+   ${(p.tips||[]).length?`<ul>${p.tips.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`:''}
+   <div class="acts"><button class="p" id="gm">Open in Google Maps</button><button id="dir">Walk there</button></div>
+   <div class="src">${sources(p)}</div>
+   <div class="mv"><p>Move to another list (the bot updates Google Maps)</p><div class="acts">${LISTS.map(l=>`<button data-mv="${l}"${l===p.list?' disabled':''}>${ICON[l]} ${NAME[l]||l}</button>`).join('')}</div></div></div>`;
+  $('back').onclick=renderList;$('gm').onclick=()=>out(p.maps);
+  $('dir').onclick=()=>out(`https://www.google.com/maps/dir/?api=1&travelmode=walking&destination=${p.lat},${p.lng}&destination_place_id=${encodeURIComponent(p.id)}`);
+  $('body').querySelectorAll('[data-mv]').forEach(b=>b.onclick=()=>act({a:'mv',id:p.id,l:b.dataset.mv},`Moving ${p.name} to ${NAME[b.dataset.mv]||b.dataset.mv}`));
+  $('body').scrollTop=0;if(tg){tg.BackButton.show()}
+  snap('half');
+}
+function icon(p,big){return L.divIcon({className:'',html:`<div class="pin${big?' sel':''}" style="background:var(--${p.list})"><span>${ICON[p.list]}</span></div>`,iconSize:big?[36,36]:[28,28],iconAnchor:big?[18,36]:[14,28]})}
+function out(u){if(!u)return;tg&&tg.openLink?tg.openLink(u):window.open(u,'_blank','noopener')}
+function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),3500)}
+// A static page cannot write: the bot does it. Opened from the keyboard button, sendData hands it over (Telegram closes
+// the page); opened from the menu button, initData is set and sendData is not allowed, so a start link goes instead.
+function act(o,label){
+  if(tg&&!tg.initData&&tg.platform!=='unknown'){tg.sendData(JSON.stringify(o));return}
+  const code=o.a==='mv'?`mv_${CODE[o.l]}_${o.id}`:`ls_${CODE[o.f.l]||'x'}_${(o.f.c||'x')[0]}`;
+  if(!/^[\w-]{1,64}$/.test(code)){toast('Open the map from the 🗺 Paris map button to do this.');return}
+  const u=`https://t.me/${D.bot}?start=${code}`;
+  if(tg&&tg.openTelegramLink){tg.openTelegramLink(u);toast((label||'Sending the list')+': tap Start in the chat.')}else window.open(u,'_blank','noopener');
+}
+// bottom sheet: peek, half, full; drag the handle or tap it
+const SN={peek:()=>190,half:()=>innerHeight*.5,full:()=>innerHeight-60};let st='peek';
+function snap(s){st=s;const h=SN[s]();document.documentElement.style.setProperty('--peek',h+'px');$('near').style.bottom=(Math.min(h,innerHeight*.5)+12)+'px'}
+(function(){const g=$('grab'),sh=$('sheet');let y0=null,h0=0;
+ g.addEventListener('pointerdown',e=>{y0=e.clientY;h0=SN[st]();sh.classList.add('drag');g.setPointerCapture(e.pointerId)});
+ g.addEventListener('pointermove',e=>{if(y0===null)return;const h=Math.max(120,Math.min(SN.full(),h0+y0-e.clientY));document.documentElement.style.setProperty('--peek',h+'px')});
+ g.addEventListener('pointerup',e=>{if(y0===null)return;sh.classList.remove('drag');const h=h0+y0-e.clientY;
+   if(Math.abs(e.clientY-y0)<6)snap(st==='peek'?'half':st==='half'?'full':'peek');else snap(Object.keys(SN).reduce((a,b)=>Math.abs(SN[b]()-h)<Math.abs(SN[a]()-h)?b:a));y0=null});
+})();
+function located(lat,lng){
+  me=[lat,lng];F.o='';$('near').classList.add('on');
+  if(meLayer)meLayer.remove();
+  meLayer=L.layerGroup([L.circle(me,{radius:1600,color:'#1a73e8',weight:1,dashArray:'4 6',fillOpacity:.03}),L.circle(me,{radius:800,color:'#1a73e8',weight:2,fillOpacity:.07}),
+    L.marker(me,{icon:L.divIcon({className:'',html:'<div class="me"></div>',iconSize:[18,18],iconAnchor:[9,9]}),interactive:false})]).addTo(map);
+  renderList();snap('half');map.setView(me,14,{animate:false});map.panBy([0,SN.half()/2],{animate:false});toast('Rings: 10 and 20 minutes on foot');
+}
+function nearMe(){
+  if(me){me=null;F.w='';if(meLayer)meLayer.remove();$('near').classList.remove('on');renderList();return}
+  const fallback=()=>navigator.geolocation?navigator.geolocation.getCurrentPosition(p=>located(p.coords.latitude,p.coords.longitude),()=>toast('No location. Allow it for Telegram in your phone settings.'),{enableHighAccuracy:true,timeout:15000}):toast('This phone gives no location.');
+  const LM=tg&&tg.isVersionAtLeast&&tg.isVersionAtLeast('8.0')&&tg.LocationManager;
+  if(!LM)return fallback();
+  LM.init(()=>{if(!LM.isLocationAvailable)return fallback();LM.getLocation(loc=>{if(loc)return located(loc.latitude,loc.longitude);
+    if(LM.isAccessRequested&&!LM.isAccessGranted){toast('Location is off for this app.');LM.openSettings()}else fallback()})});
+}
+async function main(){
+  try{D=await load()}catch(e){$('msg').textContent=e.message;return}
+  P=D.places;$('msg').remove();
+  map=L.map('map',{zoomControl:false,attributionControl:true}).setView([48.861,2.345],13);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+  P.forEach(p=>{const m=L.marker([p.lat,p.lng],{icon:icon(p,false),title:p.name});m.p=p;m.on('click',()=>detail(p));marks[p.id]=m});
+  $('chips').addEventListener('click',e=>{const b=e.target.closest('[data-l]');if(b){F.l=F.l===b.dataset.l?'':b.dataset.l;renderList()}});
+  $('chips').addEventListener('change',e=>{const s=e.target.closest('[data-f]');if(s){F[s.dataset.f]=s.value;renderList()}});
+  $('q').addEventListener('input',e=>{F.q=e.target.value;$('sbox').classList.toggle('has',!!F.q);renderList()});
+  $('q').addEventListener('focus',()=>snap('half'));
+  $('qx').onclick=()=>{$('q').value='';F.q='';$('sbox').classList.remove('has');renderList()};
+  $('body').addEventListener('click',e=>{const a=e.target.closest('a[data-out]');if(a){e.preventDefault();return out(a.href)}
+    const c=e.target.closest('.card');if(c){const p=P.find(x=>x.id===c.dataset.id);map.setView([p.lat,p.lng],Math.max(map.getZoom(),15));detail(p)}});
+  $('near').onclick=nearMe;
+  if(tg)tg.BackButton.onClick(renderList);
+  snap('peek');renderList();
+}
+main();
+</script></body></html>
