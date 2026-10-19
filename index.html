@@ -70,7 +70,7 @@ body:not([data-v=map]) .toast{bottom:24px}
 @media(prefers-reduced-motion:reduce){.sheet,.toast{transition:none}}
 /* ---------- Emily's views: they cover the map, which stays laid out below ---------- */
 .view{position:fixed;inset:0;z-index:var(--z-view);overflow-y:auto;display:none;background:var(--bg);padding-bottom:calc(28px + env(safe-area-inset-bottom))}
-body[data-v=home] #home,body[data-v=review] #review,body[data-v=info] #info,body[data-v=reels] #reels,body[data-v=top] #top{display:block}
+body[data-v=home] #home,body[data-v=review] #review,body[data-v=info] #info,body[data-v=reels] #reels,body[data-v=top] #top,body[data-v=recs] #recs{display:block}
 .pad{padding:0 20px}
 .hero{position:relative;height:300px;background:var(--raise)}.hero img{width:100%;height:100%;object-fit:cover;object-position:center 40%;display:block}
 .hero .g{position:absolute;left:0;right:0;bottom:0;padding:70px 20px 16px;background:linear-gradient(transparent,var(--bg) 78%)}.hero .g p{margin:4px 0 0;color:var(--sub)}
@@ -124,6 +124,13 @@ body[data-v=home] #home,body[data-v=review] #review,body[data-v=info] #info,body
 .rc{display:flex;flex-direction:column;gap:6px;margin-top:10px}
 .rc button{display:block;text-align:left;min-height:40px;padding:8px 12px;border:0;border-radius:10px;background:var(--raise);font-size:13px;line-height:1.35;color:var(--ink)}
 .rc button span{color:var(--sub)}.rc button{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* Emily's recommendations */
+.rbar{position:sticky;top:0;z-index:2;background:var(--bg);padding:6px 20px 0}
+.rbar .chips{margin:10px -20px 0;padding:0 20px 10px}
+.rec{margin:4px 20px 16px;border-radius:var(--r);background:var(--raise);overflow:hidden}
+.rec .ph{margin:0;padding:12px 12px 0}.rec .ph img{height:120px;width:164px}
+.rec .bd{padding:12px 14px 14px}.rec .nm{font:600 23px/1.15 var(--serif);text-wrap:balance}
+.rec .v{margin:8px 0 0}.rec .why{margin:6px 0 0;color:var(--sub);font-size:14px}.rec .acts{margin-top:12px}
 /* info */
 .infoart{display:block;width:150px;height:150px;object-fit:contain;margin:16px auto 0}
 .info{border-radius:var(--r);background:var(--raise);padding:4px 16px}
@@ -146,7 +153,7 @@ body[data-v=home] #home,body[data-v=review] #review,body[data-v=info] #info,body
  <button class="rv" id="rvb"></button>
  <div class="pair"><button data-go="near">Near me<small>Saved places by walking minutes</small></button><button data-go="map">Map<small>Filter by list, area, price</small></button></div>
  <h2 class="t2">Browse</h2>
- <div class="grp"><button data-go="reels"><span class="tx">Our reels<small id="nreels"></small></span><span class="ch">›</span></button><button data-go="top"><span class="tx">Most mentioned<small>Places several reels agree on</small></span><span class="ch">›</span></button></div>
+ <div class="grp"><button data-go="reels"><span class="tx">Our reels<small id="nreels"></small></span><span class="ch">›</span></button><button data-go="top"><span class="tx">Most mentioned<small>Places several reels agree on</small></span><span class="ch">›</span></button><button data-go="recs"><span class="tx">Emily's recommendations<small id="nrecs"></small></span><span class="ch">›</span></button></div>
  <h2 class="t2">Our Google Maps lists</h2>
  <div class="grp" id="lists"></div>
  <div class="foot"><button data-go="status">Status</button><button data-go="pending">Pending</button><button data-go="help">Help</button></div>
@@ -159,6 +166,11 @@ body[data-v=home] #home,body[data-v=review] #review,body[data-v=info] #info,body
 </section>
 <section class="view" id="reels"><div id="reelbody"></div></section>
 <section class="view" id="top"><div id="topbody"></div></section>
+<section class="view" id="recs">
+ <div class="ttl"><h1 class="t1">Emily's recommendations</h1><p id="recsub"></p></div>
+ <div class="rbar"><div class="search" id="rsbox"><input id="rq" type="search" placeholder="Search Emily's picks" autocomplete="off" aria-label="Search Emily's recommendations"><button class="x" id="rqx" aria-label="Clear search">✕</button></div><div class="chips" id="rchips"></div></div>
+ <div id="recbody"></div>
+</section>
 <section class="view" id="info"><div class="pad" id="infobody"></div></section>
 
 <script>
@@ -311,6 +323,7 @@ function emily(){
   $('rvb').innerHTML=Q.length?`<b>${Q.length}</b><span>Places to confirm<small>${ready?`${plural(ready,'answer')} ready to send`:`From ${plural(reels,'reel')}, one question at a time`}</small></span>›`
     :`<b>0</b><span>Nothing to confirm<small>Send me a reel and I'll get to work.</small></span>`;
   $('nreels').textContent=`${plural((D.reels||[]).length,'reel')}, newest first`;
+  $('nrecs').textContent=`${plural(P.filter(p=>p.list==='Suggestions').length,'place')} picked for your taste`;
   $('lists').innerHTML=LISTS.filter(l=>ideas||l!=='Suggestions').map(l=>`<button data-link="${esc((D.links||{})[l]||'')}"><span class="dot" style="background:var(--${l})"></span><span class="tx">${NAME[l]||l}<small>${plural((D.counts||{})[l]||0,'place')} · opens Google Maps</small></span><span class="ch">↗</span></button>`).join('');
   art($('skyart'),'emily-rooftop.jpg');art($('thinkart'),'emily-thinking.png');
   go(location.hash.includes('review')&&Q.length?'review':'home');if(V==='review')drawQ();
@@ -365,6 +378,33 @@ function topPage(){
      <div class="n"><b>${rs.length}</b><small>reel${rs.length>1?'s':''}</small></div></div>`}).join('');
   go('top');
 }
+// Emily's recommendations: her Suggestions list, searchable and filterable (owner, 2026-10-19)
+const RF={c:new Set(),a:'',p:'',o:'r',q:''};
+function recsChips(all){
+  const arrs=[...new Set(all.map(p=>p.arr).filter(Boolean))].sort((a,b)=>parseInt(a)-parseInt(b));
+  const sel=(id,label,opts)=>`<select class="chip${RF[id]&&!(id==='o'&&RF.o==='r')?' on':''}" data-rf="${id}" aria-label="${label}">${id==='o'?'':`<option value="">${label}</option>`}${opts.map(([v,t])=>`<option value="${esc(v)}"${RF[id]===String(v)?' selected':''}>${esc(t)}</option>`).join('')}</select>`;
+  $('rchips').innerHTML=['Food','Nightlife','Daytime'].map(c=>`<button class="chip${RF.c.has(c)?' on':''}" data-rc="${c}" aria-pressed="${RF.c.has(c)}">${dot(c)}${c}</button>`).join('')
+    +sel('a','Area',arrs.map(a=>[a,a]))+sel('p','Price',[[1,'€'],[2,'€€ or less'],[3,'€€€ or less']])+sel('o','Sort',[['r','Best rated'],['a','A to Z']]);
+}
+function recsPage(keepView){
+  const all=P.filter(p=>p.list==='Suggestions'), q=RF.q.toLowerCase().trim();
+  const ps=all.filter(p=>(!RF.c.size||RF.c.has(p.category))&&(!RF.a||p.arr===RF.a)&&(!RF.p||(pricen(p)>0&&pricen(p)<=+RF.p))
+    &&(!q||(p.name+' '+p.sub_type+' '+p.vibe+' '+p.why+' '+p.arr).toLowerCase().includes(q)))
+    .sort(RF.o==='a'?(a,b)=>a.name.localeCompare(b.name):(a,b)=>(b.rating||0)-(a.rating||0));
+  const on=RF.c.size||RF.a||RF.p||q;
+  $('recsub').textContent=on?`${ps.length} of ${plural(all.length,'place')}`:`${plural(all.length,'place')} picked for your taste`;
+  recsChips(all);
+  $('recbody').innerHTML=ps.map(p=>`<div class="rec">${pics(p.photos)}<div class="bd"><div class="nm">${esc(p.name)}</div><div class="f">${dot(p.category)}${esc(facts(p))}</div>
+    ${p.vibe?`<p class="v">${esc(p.vibe)}</p>`:''}${p.why&&p.why!==p.vibe?`<p class="why">Why I picked it: ${esc(p.why)}</p>`:''}
+    <div class="acts"><button class="btn p" data-link="${esc(p.maps)}">Open in Google Maps</button><button class="btn" data-place="${esc(p.id)}">On the map</button></div></div></div>`).join('')
+    ||'<div class="empty">Nothing matches. <button class="textbtn" id="rclear">Clear filters</button></div>';
+  if($('rclear'))$('rclear').onclick=()=>{RF.c.clear();Object.assign(RF,{a:'',p:'',o:'r',q:''});$('rq').value='';$('rsbox').classList.remove('has');recsPage(true)};
+  if(!keepView)go('recs');
+}
+$('rchips').addEventListener('click',e=>{const b=e.target.closest('[data-rc]');if(b){RF.c.has(b.dataset.rc)?RF.c.delete(b.dataset.rc):RF.c.add(b.dataset.rc);recsPage(true)}});
+$('rchips').addEventListener('change',e=>{const s=e.target.closest('[data-rf]');if(s){RF[s.dataset.rf]=s.value||(s.dataset.rf==='o'?'r':'');recsPage(true)}});
+$('rq').addEventListener('input',e=>{RF.q=e.target.value;$('rsbox').classList.toggle('has',!!RF.q);recsPage(true)});
+$('rqx').onclick=()=>{$('rq').value='';RF.q='';$('rsbox').classList.remove('has');recsPage(true)};
 function info(kind){
   const S=D.status||{},c=D.counts||{},j=S.jobs||{};let h='';
   if(kind==='status')h=`<img class="infoart" src="art/emily-pinned.png" alt="" onerror="this.remove()"><h1 class="t1" style="margin:12px 0 14px">Status</h1><div class="info"><div><span>Reels done</span><b>${j.done||0}</b></div><div><span>Reels in the queue</span><b>${(j.queued||0)+(j.working||0)+(j.understood||0)}</b></div>
@@ -379,7 +419,7 @@ function info(kind){
 document.addEventListener('click',e=>{
   const l=e.target.closest('[data-link]');if(l&&l.dataset.link){e.preventDefault();e.stopPropagation();return out(l.dataset.link)}
   const g=e.target.closest('[data-go]');if(g){const v=g.dataset.go;
-    if(v==='map'){go('map');snap('peek')}else if(v==='near'){go('map');if(!me)nearMe()}else if(v==='reels')reelsPage();else if(v==='top')topPage();else info(v);return}
+    if(v==='map'){go('map');snap('peek')}else if(v==='near'){go('map');if(!me)nearMe()}else if(v==='reels')reelsPage();else if(v==='top')topPage();else if(v==='recs')recsPage();else info(v);return}
   const mr=e.target.closest('[data-more]');if(mr){reelsOpen.add(+mr.dataset.more);return reelsPage(true)}
   const rq=e.target.closest('[data-q]');if(rq){qi=Math.max(0,Q.findIndex(q=>q.id===+rq.dataset.q));go('review');return drawQ()}
   const rp=e.target.closest('[data-place]');if(rp){const p=P.find(x=>x.id===rp.dataset.place);if(p){go('map');detail(p)}return}
