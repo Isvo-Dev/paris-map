@@ -57,7 +57,7 @@ select.chip.on{background-color:var(--acc)}
 /* Emily's views (checkin 06: B "Les Toits", one question at a time). They cover the map, which stays laid out below. */
 .view{position:fixed;inset:0;z-index:950;overflow-y:auto;display:none;font-family:Nunito,system-ui,sans-serif;color:#fff5e6;
  background:linear-gradient(#2b1b4d 0%,#4a2a5e 38%,#7a3e5c 72%,#c26a4e 100%);padding-bottom:calc(24px + env(safe-area-inset-bottom))}
-body[data-v=home] #home,body[data-v=review] #review,body[data-v=info] #info{display:block}
+body[data-v=home] #home,body[data-v=review] #review,body[data-v=info] #info,body[data-v=reels] #reels{display:block}
 .view h2{font:italic 700 20px "Playfair Display",serif;color:#ffd58a;margin:20px 0 10px}
 .view .pad{padding:0 16px}
 .sky{position:relative;height:230px;overflow:hidden}.sky .city{position:absolute;bottom:0;left:0;width:100%;height:110px}
@@ -94,6 +94,16 @@ body[data-v=home] #home,body[data-v=review] #review,body[data-v=info] #info{disp
 .ph{display:flex;gap:6px;overflow-x:auto;margin:0 0 8px;scrollbar-width:none}.ph img{height:76px;width:100px;object-fit:cover;border-radius:10px;flex:none;background:#ead9c4}
 .det .ph img{height:120px;width:160px}.at{display:inline-block;background:#2b1b4d;color:#ffd58a;border-radius:8px;padding:1px 7px;font-size:12px;font-weight:800;margin-left:6px}
 .opt{flex-wrap:wrap}.opt .ph{flex-basis:100%}
+.rl{background:#fff5e6;color:#2b1b4d;border-radius:18px;margin:0 16px 14px;padding:12px;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.rl .rtop{display:flex;gap:12px}.rl .th{width:64px;height:112px;border-radius:10px;object-fit:cover;flex:none;background:#2b1b4d}
+.rl .meta{flex:1;min-width:0}.rl .meta .d{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:13px;color:#7a3e5c}
+.rl .meta p{margin:6px 0 0;font-size:15px;font-weight:700;line-height:1.35}
+.rl .row{display:flex;gap:10px;align-items:center;border-top:1px solid #ead9c4;padding:8px 0;cursor:pointer}
+.rl .row img,.rl .row .ni{width:52px;height:52px;border-radius:10px;object-fit:cover;flex:none;background:#ead9c4}
+.rl .row b{display:block;font-size:14.5px}.rl .row small{color:#6b5a7a;font-size:12.5px}.rl .row .mp{margin-left:auto}
+.rl .more{border:0;background:none;width:100%;padding:8px 0 2px;color:#7a3e5c;font:800 13.5px Nunito,sans-serif;border-top:1px solid #ead9c4}
+.rl .q{display:block;width:100%;text-align:left;border:0;background:#ffd58a55;border-radius:10px;padding:8px 10px;margin-top:8px;font:800 13.5px Nunito,sans-serif;color:#7a3e5c}
+.rl .none{font-size:13px;color:#6b5a7a;margin-top:8px}
 .helper{display:block;width:120px;height:120px;object-fit:contain;margin:-4px auto -10px}.infoart{display:block;width:150px;height:150px;object-fit:contain;margin:8px auto -8px}
 .done{text-align:center;padding:30px 16px;font-weight:700}.done img{width:180px;height:180px;object-fit:contain;display:block;margin:0 auto 10px}
 .info{background:rgba(20,10,40,.35);border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:6px 14px;font-size:15px}
@@ -115,7 +125,7 @@ body[data-v=home] #home,body[data-v=review] #review,body[data-v=info] #info{disp
  <div class="pad">
   <button class="rvb" id="rvb"></button>
   <h2>Our Google Maps lists</h2><div class="lists" id="lists"></div>
-  <h2>Ask me to…</h2><div class="menu"><button data-go="map"><i>🗺</i><span><b>Map</b><small>every place we saved</small></span><span class="c">›</span></button><button data-go="near"><i>📍</i><span><b>Near me</b><small>what is close, in walking minutes</small></span><span class="c">›</span></button><button data-go="list"><i>📋</i><span><b>All places</b><small>the list, with filters</small></span><span class="c">›</span></button><button data-go="status"><i>📊</i><span><b>Status</b><small>reels, places and our hotel</small></span><span class="c">›</span></button><button data-go="pending"><i>⏳</i><span><b>Pending</b><small>not on Google Maps yet</small></span><span class="c">›</span></button><button data-go="help"><i>💬</i><span><b>Help</b><small>what I can do in the chat</small></span><span class="c">›</span></button></div>
+  <h2>Ask me to…</h2><div class="menu"><button data-go="reels"><i>🎬</i><span><b>Our reels</b><small>every reel and the places in it</small></span><span class="c">›</span></button><button data-go="map"><i>🗺</i><span><b>Map</b><small>every place we saved</small></span><span class="c">›</span></button><button data-go="near"><i>📍</i><span><b>Near me</b><small>what is close, in walking minutes</small></span><span class="c">›</span></button><button data-go="list"><i>📋</i><span><b>All places</b><small>the list, with filters</small></span><span class="c">›</span></button><button data-go="status"><i>📊</i><span><b>Status</b><small>reels, places and our hotel</small></span><span class="c">›</span></button><button data-go="pending"><i>⏳</i><span><b>Pending</b><small>not on Google Maps yet</small></span><span class="c">›</span></button><button data-go="help"><i>💬</i><span><b>Help</b><small>what I can do in the chat</small></span><span class="c">›</span></button></div>
  </div>
 </section>
 <section class="view" id="review">
@@ -124,6 +134,7 @@ body[data-v=home] #home,body[data-v=review] #review,body[data-v=info] #info{disp
  <div class="qbtns" id="qbtns"><button id="qprev">‹ Back</button><button id="qall">All of these</button><button id="qnone">None of these</button><button id="qskip">Skip ›</button></div>
  <button class="sendq" id="sendq"></button>
 </section>
+<section class="view" id="reels"><div id="reelbody"></div></section>
 <section class="view" id="info"><div class="pad" id="infobody"></div></section>
 
 <script>
@@ -287,7 +298,7 @@ function drawQ(){
   qi=Math.max(0,Math.min(qi,Q.length-1));const q=Q[qi],reels=[...new Set(Q.map(x=>x.job))];
   $('qprog').innerHTML=`<span>Question ${qi+1} of ${Q.length}</span><span>Reel ${reels.indexOf(q.job)+1} of ${reels.length}</span>`;
   $('qbar').style.width=((qi+1)/Q.length*100)+'%';
-  $('qcard').innerHTML=`<div class="from"><span>From a reel${q.by?' '+esc(q.by)+' sent':''} · ${esc(q.at)}${q.at_s>=0?`<span class="at">named at ${mmss(q.at_s)}</span>`:''}</span><button class="lnk2" data-link="${esc(reelAt(q))}">▶ Watch the reel</button></div>
+  $('qcard').innerHTML=`<div class="from"><span>From a reel · ${esc(q.at)}${q.at_s>=0?`<span class="at">named at ${mmss(q.at_s)}</span>`:''}</span><button class="lnk2" data-link="${esc(reelAt(q))}">▶ Watch the reel</button></div>
    <h3>“${esc(q.name)}”</h3><div class="why">${esc([q.sub,q.why].filter(Boolean).join(' · '))}</div>
    ${q.opts.map((o,i)=>`<div class="opt${ans[q.id]===i?' on':''}">${pics(o.photos)}<div class="t"><b>${esc(o.name)}</b>${esc(o.addr)}<br><button class="lnk2" data-link="${esc(o.maps)}">Open in Google Maps ↗</button></div><button class="ok" data-pick="${i}">${ans[q.id]===i?'✓ Chosen':'This one'}</button></div>`).join('')}`;
   $('qnone').classList.toggle('on',ans[q.id]==='x');$('qall').classList.toggle('on',ans[q.id]==='a');$('qall').hidden=q.opts.length<2;
@@ -299,6 +310,20 @@ function sendAnswers(){
   while(JSON.stringify({a:'pk',r}).length>4000)r=r.slice(0,-1);
   if(!(tg&&!tg.initData&&tg.platform!=='unknown')){toast('Open me from the 🗺 Paris map button under the text box to send.');return}
   r.forEach(([id])=>{sentIds.add(id);delete ans[id]});keep();tg.sendData(JSON.stringify({a:'pk',r}));
+}
+// Every reel sent, newest first, its places under it (checkin 08 r1, direction A)
+const reelsOpen=new Set();
+function reelsPage(keep){
+  const byId=Object.fromEntries(P.map(p=>[p.id,p])), R=D.reels||[];
+  const row=p=>`<div class="row" data-place="${esc(p.id)}">${(p.photos||[])[0]?`<img src="${esc(p.photos[0])}" alt="" loading="lazy" onerror="this.outerHTML='<span class=ni></span>'">`:'<span class="ni"></span>'}<span><b>${esc(p.name)}</b><small>${ICON[p.list]} ${esc([p.sub_type,p.arr].filter(Boolean).join(' · '))}</small></span><button class="lnk2 mp" data-link="${esc(p.maps)}">Maps ↗</button></div>`;
+  const found=R.reduce((n,r)=>n+r.places.length,0);
+  $('reelbody').innerHTML=`<div class="pad"><h2>Our reels</h2><p style="margin:-4px 0 14px;opacity:.8;font-size:14px">${plural(R.length,'reel')} · ${plural(found,'place')} found</p></div>`+R.map(r=>{
+    const ps=r.places.map(id=>byId[id]).filter(Boolean), qs=r.questions.filter(q=>!sentIds.has(q.id)), all=reelsOpen.has(r.job);
+    return `<div class="rl"><div class="rtop">${r.thumb?`<img class="th" src="${r.thumb}" alt="">`:''}<div class="meta"><div class="d"><span>🎬 ${esc(r.at)}</span><button class="lnk2" data-link="${esc(r.url)}">▶ Watch</button></div><p>${esc(r.summary||'A reel')}</p></div></div>
+      ${(all?ps:ps.slice(0,4)).map(row).join('')}${!all&&ps.length>4?`<button class="more" data-more="${r.job}">+ ${ps.length-4} more</button>`:''}
+      ${qs.length?`<button class="q" data-q="${qs[0].id}">🤔 ${qs.length} to review: ${esc(qs.map(q=>q.name).join(', '))} ›</button>`:''}
+      ${!ps.length&&!qs.length?`<div class="none">${r.status==='done'||r.status==='understood'?'No Paris place in this one.':'Emily is still on it.'}</div>`:''}</div>`}).join('');
+  if(!keep)go('reels');
 }
 function info(kind){
   const S=D.status||{},c=D.counts||{},j=S.jobs||{};let h='';
@@ -315,7 +340,10 @@ function info(kind){
 document.addEventListener('click',e=>{
   const l=e.target.closest('[data-link]');if(l&&l.dataset.link){e.preventDefault();return out(l.dataset.link)}
   const g=e.target.closest('[data-go]');if(g){const v=g.dataset.go;
-    if(v==='map'){go('map');snap('peek')}else if(v==='list'){go('map');snap('full')}else if(v==='near'){go('map');if(!me)nearMe()}else info(v);return}
+    if(v==='map'){go('map');snap('peek')}else if(v==='list'){go('map');snap('full')}else if(v==='near'){go('map');if(!me)nearMe()}else if(v==='reels')reelsPage();else info(v);return}
+  const mr=e.target.closest('[data-more]');if(mr){reelsOpen.add(+mr.dataset.more);return reelsPage(true)}
+  const rq=e.target.closest('[data-q]');if(rq){qi=Math.max(0,Q.findIndex(q=>q.id===+rq.dataset.q));go('review');return drawQ()}
+  const rp=e.target.closest('[data-place]');if(rp){const p=P.find(x=>x.id===rp.dataset.place);if(p){go('map');map.setView([p.lat,p.lng],15);detail(p)}return}
   const k=e.target.closest('[data-pick]');if(k)return pick(k.dataset.pick==='x'?'x':+k.dataset.pick);
 });
 $('rvb').onclick=()=>{if(Q.length){go('review');drawQ()}};
