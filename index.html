@@ -1,119 +1,140 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
-<meta name="referrer" content="strict-origin-when-cross-origin"><title>Paris map</title>
-<!-- Paris Bot Mini App (F18). Public code, no data: the places come from data.bin, decrypted with the #k= key. -->
+<meta name="referrer" content="strict-origin-when-cross-origin"><meta name="color-scheme" content="dark"><title>Paris with Emily</title>
+<!-- Paris Bot Mini App (F18). Public code, no data: the places come from data.bin, decrypted with the #k= key.
+     Look: "Nuit" (checkin 09 c1), chic, calm, curated (PRODUCT.md). One sans for UI, one serif for names and titles. -->
 <script>window.__k=(location.hash.match(/[#&]k=([\w-]+)/)||[])[1]||sessionStorage.getItem('pk')||'';if(window.__k)sessionStorage.setItem('pk',window.__k)</script>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Cormorant+Garamond:wght@600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <style>
-:root{--bg:var(--tg-theme-bg-color,#fff);--ink:var(--tg-theme-text-color,#1f1f1f);--sub:var(--tg-theme-hint-color,#70757a);
---sec:var(--tg-theme-secondary-bg-color,#f1f3f4);--acc:var(--tg-theme-button-color,#1a73e8);--acc-ink:var(--tg-theme-button-text-color,#fff);
---link:var(--tg-theme-link-color,#1a73e8);--line:color-mix(in srgb,var(--ink) 12%,transparent);
---Food:#e8590c;--Nightlife:#7048e8;--Daytime:#1c7ed6;--Suggestions:#c99400;--h:var(--tg-viewport-stable-height,100vh)}
-.dark{--bg:var(--tg-theme-bg-color,#202124);--ink:var(--tg-theme-text-color,#e8eaed);--sub:var(--tg-theme-hint-color,#9aa0a6);--sec:var(--tg-theme-secondary-bg-color,#303134);--link:var(--tg-theme-link-color,#8ab4f8)}
+:root{
+ --bg:#121117;--raise:#1d1c23;--raise2:#28262f;--line:#2e2c35;--ink:#f3f0ea;--sub:#a9a6b0;--faint:#7d7a85;
+ --acc:#e5485f;--acc-ink:#fff;--acc-soft:#e5485f26;
+ --Food:#ff8a5b;--Nightlife:#a98bff;--Daytime:#6cb4f5;--Suggestions:#e8c46b;
+ --sans:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--serif:"Cormorant Garamond",Georgia,serif;
+ --r:12px;--h:var(--tg-viewport-stable-height,100vh);
+ --z-map:1;--z-mapui:500;--z-sheet:600;--z-view:700;--z-toast:800;--z-msg:900}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;height:100%;overflow:hidden}
-body{font:15px/1.35 -apple-system,system-ui,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
-button,select,input{font:inherit;color:inherit}
-#map{position:fixed;inset:0;height:var(--h);background:var(--sec)}
-.dark .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}
-.top{position:fixed;top:0;left:0;right:0;z-index:500;padding:10px 10px 0;pointer-events:none}.top>*{pointer-events:auto}
-.search{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:24px;padding:0 6px 0 14px;height:46px;box-shadow:0 1px 6px rgba(0,0,0,.28)}
-.search input{flex:1;border:0;outline:0;background:transparent;font-size:16px;min-width:0}.search input::placeholder{color:var(--sub)}
-.search .x{border:0;background:none;color:var(--sub);font-size:18px;width:34px;height:34px;border-radius:50%;display:none}.search.has .x{display:block}
-.chips{display:flex;gap:6px;overflow-x:auto;margin:8px -10px 0;padding:0 10px 8px;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
-.chip{flex:none;display:flex;align-items:center;gap:6px;border:0;border-radius:16px;height:32px;padding:0 12px;background:var(--bg);font-size:14px;font-weight:500;box-shadow:0 1px 4px rgba(0,0,0,.2);white-space:nowrap}
-.chip.on{background-color:var(--acc);color:var(--acc-ink)}.chip .d{width:9px;height:9px;border-radius:50%}
-select.chip{appearance:none;-webkit-appearance:none;padding-right:26px;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 15px) 14px,calc(100% - 10px) 14px;background-size:5px 5px;background-repeat:no-repeat}
-select.chip.on{background-color:var(--acc)}
-.pin{width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);display:grid;place-items:center}
-.pin span{transform:rotate(45deg);font-size:13px}.pin.sel{width:36px;height:36px;border-width:3px}
-.me{width:18px;height:18px;border-radius:50%;background:#1a73e8;border:3px solid #fff;box-shadow:0 0 0 7px rgba(26,115,232,.22)}
-.fab{position:fixed;right:12px;z-index:550;width:48px;height:48px;border-radius:50%;border:0;background:var(--bg);color:var(--link);box-shadow:0 2px 8px rgba(0,0,0,.3);font-size:22px;display:grid;place-items:center;transition:bottom .2s}
-.fab.on{color:#fff;background:#1a73e8}
-.sheet{position:fixed;left:0;right:0;bottom:0;z-index:600;height:var(--peek,190px);background:var(--bg);border-radius:16px 16px 0 0;box-shadow:0 -2px 14px rgba(0,0,0,.2);display:flex;flex-direction:column;transition:height .22s ease}
-.sheet.drag{transition:none}
-.grab{padding:8px 0 4px;touch-action:none;cursor:grab}.grab i{display:block;width:38px;height:4px;border-radius:2px;background:var(--line);margin:0 auto;background:color-mix(in srgb,var(--ink) 22%,transparent)}
-.hd{display:flex;align-items:center;gap:8px;padding:2px 16px 8px}.hd .cnt{flex:1;color:var(--sub);font-size:13.5px}
-.hd button,.lnk{border:0;background:none;color:var(--link);font-weight:600;font-size:14px;padding:6px 0}
-.body{flex:1;overflow-y:auto;padding:0 16px calc(16px + env(safe-area-inset-bottom));overscroll-behavior:contain}
-.card{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--line);cursor:pointer}
-.bar{width:4px;border-radius:2px;flex:none}.card .b{flex:1;min-width:0}
-.card h3{margin:0;font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.f{color:var(--sub);font-size:13px;margin-top:2px}.v{font-size:14px;margin-top:4px}
-.min{flex:none;width:46px;text-align:center;padding-top:1px}.min b{display:block;font-size:22px;line-height:1.1;font-weight:700}.min small{color:var(--sub);font-size:11px}
-.det h2{margin:4px 0 2px;font-size:21px}.det .tag{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--sub)}
-.det ul{margin:8px 0;padding-left:18px;font-size:14px}.det .src a{color:var(--link);margin-right:12px;font-size:14px}
-.acts{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}.acts button{border:0;border-radius:20px;height:38px;padding:0 16px;font-weight:600;font-size:14px;background:var(--sec);color:var(--link)}
-.acts button.p{background:var(--acc);color:var(--acc-ink)}
-.mv{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.mv p{margin:0 0 8px;font-size:13px;color:var(--sub)}
-.mv .acts button[disabled]{opacity:.45}
-.msg{position:fixed;inset:0;display:grid;place-items:center;padding:32px;text-align:center;color:var(--sub);z-index:900;background:var(--bg)}
-.toast{position:fixed;left:16px;right:16px;bottom:calc(var(--peek,190px) + 12px);z-index:800;background:var(--ink);color:var(--bg);border-radius:10px;padding:10px 14px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none}.toast.on{opacity:1}
-.empty{color:var(--sub);padding:18px 0;text-align:center}
-.leaflet-control-attribution{font-size:9px}.leaflet-top{top:110px}
-@media(prefers-reduced-motion:reduce){.sheet,.fab{transition:none}}
-/* Emily's views (checkin 06: B "Les Toits", one question at a time). They cover the map, which stays laid out below. */
-.view{position:fixed;inset:0;z-index:950;overflow-y:auto;display:none;font-family:Nunito,system-ui,sans-serif;color:#fff5e6;
- background:linear-gradient(#2b1b4d 0%,#4a2a5e 38%,#7a3e5c 72%,#c26a4e 100%);padding-bottom:calc(24px + env(safe-area-inset-bottom))}
-body[data-v=home] #home,body[data-v=review] #review,body[data-v=info] #info,body[data-v=reels] #reels{display:block}
-.view h2{font:italic 700 20px "Playfair Display",serif;color:#ffd58a;margin:20px 0 10px}
-.view .pad{padding:0 16px}
-.sky{position:relative;height:230px;overflow:hidden}.sky .city{position:absolute;bottom:0;left:0;width:100%;height:110px}
-.sky .cat{position:absolute;right:20px;bottom:22px}.sky .art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
-.sky.hasart{height:430px}.sky .art{object-position:center 58%}.sky.hasart .art{display:block}.sky.hasart .city,.sky.hasart .cat{display:none}
-.say{position:absolute;left:16px;top:18px;right:128px;background:rgba(255,245,230,.96);color:#2b1b4d;border-radius:18px;padding:10px 14px;font-weight:700;font-size:15px;line-height:1.35;z-index:2}
-.say:after{content:"";position:absolute;right:-8px;bottom:14px;border:8px solid transparent;border-left-color:rgba(255,245,230,.96);border-right:0}
-.sky.hasart .say{right:auto;max-width:46%;font-size:14px}.sky.hasart .say:after{display:none}
-.rvb{display:flex;align-items:center;gap:12px;width:100%;border:0;text-align:left;background:#ffd58a;color:#2b1b4d;border-radius:16px;padding:12px 14px;font:800 16px Nunito,sans-serif;margin-top:-8px;position:relative;z-index:3}
-.rvb .n{font:italic 700 26px "Playfair Display",serif;min-width:36px;text-align:center}.rvb small{display:block;font-weight:600;opacity:.75;font-size:13px}.rvb .go{margin-left:auto;font-size:22px}
-.rvb.zero{background:rgba(255,255,255,.14);color:#fff5e6}
-.lists{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.lists button{border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.12);color:#fff5e6;border-radius:14px;padding:10px 12px;text-align:left;font:800 15px Nunito,sans-serif}
-.lists small{display:block;font-weight:600;opacity:.75;font-size:12.5px}
-.menu{background:rgba(20,10,40,.35);border:1px solid rgba(255,255,255,.14);border-radius:16px;overflow:hidden}
-.menu button{display:flex;align-items:center;gap:12px;width:100%;border:0;border-top:1px solid rgba(255,255,255,.1);background:none;color:#fff5e6;padding:11px 12px;text-align:left;font:inherit}
-.menu button:first-child{border-top:0}.menu i{font-style:normal;width:36px;height:36px;border-radius:10px;background:rgba(255,213,138,.18);display:grid;place-items:center;font-size:18px;flex:none}
-.menu b{display:block;font-size:16px}.menu small{opacity:.72;font-size:13px}.menu .c{margin-left:auto;opacity:.5;font-size:18px}
-.qhead{padding:14px 16px 0}.qprog{display:flex;justify-content:space-between;font-weight:700;opacity:.85;font-size:13.5px}
-.qbar{height:5px;border-radius:3px;background:rgba(255,255,255,.2);margin:6px 0 14px}.qbar i{display:block;height:100%;background:#ffd58a;border-radius:3px;transition:width .2s}
-.qcard{background:#fff5e6;color:#2b1b4d;border-radius:20px;padding:14px;margin:0 16px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
-.qcard .from{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;color:#7a3e5c;gap:8px}
-.qcard h3{font:italic 700 23px "Playfair Display",serif;margin:8px 0 2px}.qcard .why{font-size:13.5px;color:#6b5a7a;margin-bottom:6px}
-.lnk2{border:0;background:none;color:#1c6fd0;font:800 13.5px Nunito,sans-serif;padding:4px 0;white-space:nowrap}
-.opt{border:2px solid #ead9c4;border-radius:14px;padding:10px 11px;margin:8px 0;display:flex;align-items:center;gap:8px}
-.opt .t{flex:1;font-size:13.5px;min-width:0}.opt b{display:block;font-size:15px}.opt.on{border-color:#2b1b4d;background:#fff}
-.opt .ok{border:0;background:#2b1b4d;color:#ffd58a;border-radius:10px;padding:8px 11px;font:800 13.5px Nunito,sans-serif;flex:none}
-.opt.on .ok{background:#1f8a5b;color:#fff}
-.qbtns{display:flex;gap:8px;margin:14px 16px 0}.qbtns button{flex:1;border:0;border-radius:14px;padding:12px 6px;font:800 15px Nunito,sans-serif;background:rgba(255,255,255,.14);color:#fff5e6}
-.qbtns button.on{background:#c0392b}#qall.on{background:#1f8a5b}.qbtns{flex-wrap:wrap}.qbtns button{flex:1 1 40%}
-.sendq{position:sticky;bottom:calc(10px + env(safe-area-inset-bottom));z-index:5;box-shadow:0 6px 20px rgba(0,0,0,.35);display:block;width:calc(100% - 32px);margin:18px 16px 0;border:0;border-radius:14px;padding:15px;font:800 16px Nunito,sans-serif;background:#ffd58a;color:#2b1b4d}
-.sendq:disabled{opacity:.45}
+body{font:400 15px/1.45 var(--sans);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+button,select,input{font:inherit;color:inherit}button{cursor:pointer}
 [hidden]{display:none!important}
-.ph{display:flex;gap:6px;overflow-x:auto;margin:0 0 8px;scrollbar-width:none}.ph img{height:76px;width:100px;object-fit:cover;border-radius:10px;flex:none;background:#ead9c4}
-.det .ph img{height:120px;width:160px}.at{display:inline-block;background:#2b1b4d;color:#ffd58a;border-radius:8px;padding:1px 7px;font-size:12px;font-weight:800;margin-left:6px}
-.opt{flex-wrap:wrap}.opt .ph{flex-basis:100%}
-.rl{background:#fff5e6;color:#2b1b4d;border-radius:18px;margin:0 16px 14px;padding:12px;box-shadow:0 8px 24px rgba(0,0,0,.3)}
-.rl .rtop{display:flex;gap:12px}.rl .th{width:64px;height:112px;border-radius:10px;object-fit:cover;flex:none;background:#2b1b4d}
-.rl .meta{flex:1;min-width:0}.rl .meta .d{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:13px;color:#7a3e5c}
-.rl .meta p{margin:6px 0 0;font-size:15px;font-weight:700;line-height:1.35}
-.rl .row{display:flex;gap:10px;align-items:center;border-top:1px solid #ead9c4;padding:8px 0;cursor:pointer}
-.rl .row img,.rl .row .ni{width:52px;height:52px;border-radius:10px;object-fit:cover;flex:none;background:#ead9c4}
-.rl .row b{display:block;font-size:14.5px}.rl .row small{color:#6b5a7a;font-size:12.5px}.rl .row .mp{margin-left:auto}
-.rl .more{border:0;background:none;width:100%;padding:8px 0 2px;color:#7a3e5c;font:800 13.5px Nunito,sans-serif;border-top:1px solid #ead9c4}
-.rl .q{display:block;width:100%;text-align:left;border:0;background:#ffd58a55;border-radius:10px;padding:8px 10px;margin-top:8px;font:800 13.5px Nunito,sans-serif;color:#7a3e5c}
-.rl .none{font-size:13px;color:#6b5a7a;margin-top:8px}
-.helper{display:block;width:120px;height:120px;object-fit:contain;margin:-4px auto -10px}.infoart{display:block;width:150px;height:150px;object-fit:contain;margin:8px auto -8px}
-.done{text-align:center;padding:30px 16px;font-weight:700}.done img{width:180px;height:180px;object-fit:contain;display:block;margin:0 auto 10px}
-.info{background:rgba(20,10,40,.35);border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:6px 14px;font-size:15px}
-.info div{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid rgba(255,255,255,.1)}.info div:first-child{border-top:0}
-.info span{opacity:.8}.info .lk{color:#ffd58a;border:0;background:none;font:inherit;padding:0;white-space:nowrap}
-.helptext p{margin:0 0 10px;line-height:1.45}.helptext code{color:#ffd58a;font-family:inherit;font-weight:800}
+.serif{font-family:var(--serif);font-weight:600;letter-spacing:.005em}
+.t1{font:600 30px/1.1 var(--serif);margin:0;text-wrap:balance}.t2{font:600 13px/1.3 var(--sans);color:var(--sub);margin:28px 20px 8px}
+.sub{color:var(--sub)}.num{font-variant-numeric:tabular-nums}
+/* ---------- map ---------- */
+#map{position:fixed;inset:0;height:var(--h);background:var(--bg);z-index:var(--z-map)}
+.leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.82) contrast(.92) saturate(.6)}
+.leaflet-container{background:var(--bg);font-family:var(--sans)}
+.leaflet-control-attribution{font-size:10px;background:#121117cc!important;color:var(--faint)}.leaflet-control-attribution a{color:var(--sub)}.leaflet-top{top:120px}
+.top{position:fixed;top:0;left:0;right:0;z-index:var(--z-mapui);padding:10px 12px 0;pointer-events:none}.top>*{pointer-events:auto}
+.search{display:flex;align-items:center;gap:8px;background:var(--raise);border:1px solid var(--line);border-radius:999px;padding:0 4px 0 16px;height:48px}
+.search input{flex:1;border:0;outline:0;background:transparent;font-size:16px;min-width:0}.search input::placeholder{color:var(--faint)}
+.search input::-webkit-search-cancel-button{display:none}
+.search .x{border:0;background:none;color:var(--sub);width:44px;height:44px;border-radius:50%;display:none}.search.has .x{display:block}
+.chips{display:flex;gap:8px;overflow-x:auto;margin:10px -12px 0;padding:0 12px 10px;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;display:flex;align-items:center;gap:7px;height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--raise);font-size:14px;font-weight:500;white-space:nowrap}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}.chip .d{width:8px;height:8px;border-radius:50%}
+select.chip{appearance:none;-webkit-appearance:none;padding-right:30px;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 17px) 18px,calc(100% - 12px) 18px;background-size:5px 5px;background-repeat:no-repeat}
+.pin{width:18px;height:18px;border-radius:50%;border:2px solid #121117;box-shadow:0 0 0 1.5px #ffffff55}
+.pin.sel{width:26px;height:26px;border-width:3px;box-shadow:0 0 0 2px var(--ink)}
+.me{width:16px;height:16px;border-radius:50%;background:var(--acc);border:3px solid var(--ink);box-shadow:0 0 0 8px var(--acc-soft)}
+.fab{position:fixed;right:12px;z-index:var(--z-mapui);width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:var(--raise);color:var(--ink);font-size:20px;display:grid;place-items:center}
+.fab.on{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:var(--z-sheet);height:var(--peek,190px);background:var(--bg);border-top:1px solid var(--line);border-radius:20px 20px 0 0;display:flex;flex-direction:column;transition:height .22s cubic-bezier(.22,1,.36,1)}
+.sheet.drag{transition:none}
+.grab{padding:10px 0 6px;touch-action:none;cursor:grab}.grab i{display:block;width:40px;height:4px;border-radius:2px;background:var(--raise2);margin:0 auto}
+.hd{display:flex;align-items:center;gap:8px;padding:0 20px 6px;min-height:36px}.hd .cnt{flex:1;color:var(--sub);font-size:13px}
+.textbtn{border:0;background:none;color:var(--ink);font-weight:500;font-size:14px;min-height:44px;padding:0 4px;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--faint)}
+.body{flex:1;overflow-y:auto;padding:0 20px calc(20px + env(safe-area-inset-bottom));overscroll-behavior:contain}
+.card{display:flex;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--line);cursor:pointer;min-height:64px}.card:first-child{border-top:0}
+.card .b{flex:1;min-width:0}.card .nm{font:600 19px/1.2 var(--serif);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card img,.card .ni{width:52px;height:52px;border-radius:10px;object-fit:cover;flex:none;background:var(--raise)}
+.f{color:var(--sub);font-size:13px;margin-top:2px;display:flex;align-items:center;gap:6px}.f .d{width:7px;height:7px;border-radius:50%;flex:none;align-self:flex-start;margin-top:6px}
+.card .f{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}.card .f .d{display:inline-block;vertical-align:middle;margin:0 6px 2px 0}
+.min{flex:none;width:44px;text-align:center}.min b{display:block;font:600 20px/1 var(--sans);font-variant-numeric:tabular-nums}.min small{color:var(--sub);font-size:11px}
+.det h2{font:600 26px/1.15 var(--serif);margin:2px 0 4px;text-wrap:balance}
+.det .v{margin:12px 0 0}.det ul{margin:8px 0 0;padding-left:18px;color:var(--sub);font-size:14px}.det ul li{margin:3px 0}
+.acts{display:flex;gap:8px;margin:14px 0 0;flex-wrap:wrap}
+.btn{min-height:44px;padding:0 16px;border-radius:var(--r);border:1px solid var(--line);background:var(--raise);font-weight:500;font-size:14px}
+.btn.p{background:var(--acc);border-color:var(--acc);color:var(--acc-ink);font-weight:600}
+.btn[disabled]{color:var(--faint);background:transparent}
+.src{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.mv{margin-top:22px;padding-top:14px;border-top:1px solid var(--line)}.mv p{margin:0 0 8px;font-size:13px;color:var(--sub)}
+.ph{display:flex;gap:6px;overflow-x:auto;margin:14px -20px 0;padding:0 20px;scrollbar-width:none}.ph img{height:110px;width:150px;object-fit:cover;border-radius:10px;flex:none;background:var(--raise)}
+.msg{position:fixed;inset:0;display:grid;place-items:center;padding:32px;text-align:center;color:var(--sub);z-index:var(--z-msg);background:var(--bg)}
+.toast{position:fixed;left:16px;right:16px;bottom:calc(var(--peek,190px) + 12px);z-index:var(--z-toast);background:var(--raise2);color:var(--ink);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none}.toast.on{opacity:1}
+body:not([data-v=map]) .toast{bottom:24px}
+.empty{color:var(--sub);padding:20px 0;text-align:center}
+@media(prefers-reduced-motion:reduce){.sheet,.toast{transition:none}}
+/* ---------- Emily's views: they cover the map, which stays laid out below ---------- */
+.view{position:fixed;inset:0;z-index:var(--z-view);overflow-y:auto;display:none;background:var(--bg);padding-bottom:calc(28px + env(safe-area-inset-bottom))}
+body[data-v=home] #home,body[data-v=review] #review,body[data-v=info] #info,body[data-v=reels] #reels,body[data-v=top] #top{display:block}
+.pad{padding:0 20px}
+.hero{position:relative;height:300px;background:var(--raise)}.hero img{width:100%;height:100%;object-fit:cover;object-position:center 40%;display:block}
+.hero .g{position:absolute;left:0;right:0;bottom:0;padding:70px 20px 16px;background:linear-gradient(transparent,var(--bg) 78%)}.hero .g p{margin:4px 0 0;color:var(--sub)}
+.rv{display:flex;align-items:center;gap:14px;width:calc(100% - 40px);margin:14px 20px 0;padding:14px 16px;border:0;border-radius:var(--r);background:var(--acc);color:var(--acc-ink);text-align:left;min-height:64px}
+.rv b{font:600 26px/1 var(--sans);font-variant-numeric:tabular-nums;min-width:34px}.rv span{flex:1;font-weight:600}.rv small{display:block;opacity:.9;font-weight:400;font-size:13px;margin-top:1px}
+.rv.zero{background:var(--raise);color:var(--ink)}.rv.zero b{color:var(--sub)}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 20px 0}
+.pair button{border:1px solid var(--line);border-radius:var(--r);background:var(--raise);padding:14px;min-height:80px;text-align:left;font-weight:600;font-size:16px}
+.pair small{display:block;font-weight:400;color:var(--sub);font-size:13px;margin-top:3px}
+.grp{margin:0 20px;border-radius:var(--r);background:var(--raise);overflow:hidden}
+.grp>button,.grp>div{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;padding:10px 16px;border:0;border-top:1px solid var(--line);background:none;text-align:left}
+.grp>:first-child{border-top:0}.grp .tx{flex:1;min-width:0}.grp small{display:block;color:var(--sub);font-size:13px}.grp .ch{color:var(--faint)}
+.dot{width:10px;height:10px;border-radius:50%;flex:none}
+.foot{display:flex;justify-content:center;gap:4px;margin:22px 0 0}.foot button{border:0;background:none;color:var(--sub);min-height:44px;padding:0 12px;font-size:14px}
+/* review */
+.qhead{display:flex;align-items:flex-end;gap:12px;padding:16px 20px 0}.helper{width:76px;height:76px;object-fit:contain;flex:none}
+.qmeta{flex:1}.qprog{display:flex;justify-content:space-between;color:var(--sub);font-size:13px}
+.qbar{height:4px;border-radius:2px;background:var(--raise2);margin:8px 0 2px}.qbar i{display:block;height:100%;background:var(--acc);border-radius:2px;width:0}
+.qcard{margin:16px 20px 0}.qcard .from{display:flex;justify-content:space-between;align-items:center;gap:8px;color:var(--sub);font-size:13px}
+.qcard h3{font:600 30px/1.1 var(--serif);margin:8px 0 4px;text-wrap:balance}.qcard .why{color:var(--sub);font-size:14px}
+.at{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;background:var(--acc-soft);color:var(--ink);font-size:12px;font-weight:500}
+.opt{border:1px solid var(--line);border-radius:var(--r);background:var(--raise);padding:12px;margin:12px 0 0}
+.opt.on{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc)}
+.opt .ph{margin:0 0 10px;padding:0}.opt .ph img{height:84px;width:112px}
+.opt .row{display:flex;gap:10px;align-items:center}.opt .t{flex:1;min-width:0}.opt .nm{font:600 19px/1.2 var(--serif)}.opt .ad{color:var(--sub);font-size:13px;margin-top:2px}
+.opt .lk{margin-top:6px}
+.ok{min-height:44px;padding:0 14px;border-radius:var(--r);border:1px solid var(--ink);background:transparent;font-weight:600;font-size:14px;flex:none}
+.opt.on .ok{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
+.qbtns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:16px 20px 0}.qbtns button{min-height:48px;border-radius:var(--r);border:1px solid var(--line);background:var(--raise);font-weight:500}
+.qbtns button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}.qbtns button[disabled]{color:var(--faint);background:transparent}
+.sendq{position:sticky;bottom:calc(12px + env(safe-area-inset-bottom));display:block;width:calc(100% - 40px);margin:18px 20px 0;min-height:54px;border:0;border-radius:var(--r);background:var(--acc);color:var(--acc-ink);font-weight:600;font-size:16px;box-shadow:0 8px 24px #000a}
+.sendq:disabled{background:var(--raise2);color:var(--sub);box-shadow:none}
+.done{text-align:center;padding:24px 20px;color:var(--sub)}.done img{width:180px;height:180px;object-fit:contain;display:block;margin:0 auto 8px}
+.lnk{border:0;background:none;color:var(--ink);min-height:44px;padding:0;font-weight:500;font-size:13.5px;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--faint);white-space:nowrap}
+/* reels and most mentioned */
+.ttl{padding:20px 20px 6px}.ttl p{margin:6px 0 0;color:var(--sub);font-size:14px}
+.rl{margin:14px 20px 0;border-radius:var(--r);background:var(--raise);overflow:hidden}
+.rl .rtop{display:flex;gap:14px;padding:12px}.rl .th{width:60px;height:106px;border-radius:8px;object-fit:cover;flex:none;background:var(--raise2)}
+.rl .meta{flex:1;min-width:0}.rl .meta .d{display:flex;justify-content:space-between;align-items:center;color:var(--sub);font-size:13px}
+.rl .meta p{margin:2px 0 0;font-size:15px;line-height:1.4}
+.pr{display:flex;gap:12px;align-items:center;padding:10px 12px;border-top:1px solid var(--line);cursor:pointer;min-height:64px}
+.pr img,.pr .ni{width:48px;height:48px;border-radius:8px;object-fit:cover;flex:none;background:var(--raise2)}
+.pr .tx{flex:1;min-width:0}.pr .nm{font:600 18px/1.2 var(--serif);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rl .more,.rl .q{display:block;width:100%;min-height:48px;padding:0 12px;border:0;border-top:1px solid var(--line);background:none;text-align:left;font-size:14px;color:var(--sub)}
+.rl .q{color:var(--ink);font-weight:500}.rl .q b{color:var(--acc)}
+.rl .none{padding:0 12px 12px;color:var(--sub);font-size:13px}
+.mm{display:flex;gap:14px;padding:14px 20px;border-top:1px solid var(--line);cursor:pointer}.mm:first-of-type{border-top:0}
+.mm img,.mm .ni{width:64px;height:64px;border-radius:10px;object-fit:cover;flex:none;background:var(--raise)}
+.mm .tx{flex:1;min-width:0}.mm .nm{font:600 21px/1.15 var(--serif)}
+.mm .n{flex:none;text-align:center;min-width:40px}.mm .n b{display:block;font:600 22px/1 var(--sans);font-variant-numeric:tabular-nums;color:var(--acc)}.mm .n small{color:var(--sub);font-size:11.5px}
+.rc{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.rc button{display:block;text-align:left;min-height:40px;padding:8px 12px;border:0;border-radius:10px;background:var(--raise);font-size:13px;line-height:1.35;color:var(--ink)}
+.rc button span{color:var(--sub)}.rc button{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* info */
+.infoart{display:block;width:150px;height:150px;object-fit:contain;margin:16px auto 0}
+.info{border-radius:var(--r);background:var(--raise);padding:4px 16px}
+.info div{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:48px;border-top:1px solid var(--line)}.info div:first-child{border-top:0}
+.info span{color:var(--sub)}.info b{font-weight:500;font-variant-numeric:tabular-nums;text-align:right}
+.helptext{max-width:65ch}.helptext p{margin:0 0 12px;line-height:1.55}.helptext code{font-family:var(--sans);font-weight:600;color:var(--ink)}
+.note{color:var(--sub);font-size:14px;margin:12px 0 0}
 </style></head><body>
 <div id="map"></div>
 <div class="top">
- <div class="search" id="sbox"><span aria-hidden="true">🔍</span><input id="q" type="search" placeholder="Search places, types, vibes" autocomplete="off" aria-label="Search"><button class="x" id="qx" aria-label="Clear search">✕</button></div>
+ <div class="search" id="sbox"><input id="q" type="search" placeholder="Search places, types, vibes" autocomplete="off" aria-label="Search places"><button class="x" id="qx" aria-label="Clear search">✕</button></div>
  <div class="chips" id="chips"></div>
 </div>
 <button class="fab" id="near" aria-label="Near me">◎</button>
@@ -121,108 +142,117 @@ body[data-v=home] #home,body[data-v=review] #review,body[data-v=info] #info,body
 <div class="toast" id="toast" role="status"></div>
 <div class="msg" id="msg">Opening…</div>
 <section class="view" id="home">
- <div class="sky" id="sky"><img class="art" id="skyart" alt="Emily on a Paris rooftop at dusk"><svg class="city" viewBox="0 0 390 110" preserveAspectRatio="none" aria-hidden="true"><path d="M0 110 V70 h30 v-12 h16 v12 h20 V50 h24 v60Z M90 110 V62 h18 l6 -10 l6 10 h18 v48Z" fill="#1d1233"/><path d="M170 110 L186 40 L190 40 L206 110Z" fill="#1d1233"/><path d="M188 40 V18" stroke="#1d1233" stroke-width="3"/><path d="M206 110 V66 h26 v-10 h12 v10 h30 V58 h20 l8 -12 l8 12 v52 h80 V74 h-30 Z" fill="#1d1233"/><g fill="#ffd58a"><rect x="38" y="80" width="6" height="8"/><rect x="100" y="74" width="6" height="8"/><rect x="120" y="74" width="6" height="8"/><rect x="224" y="76" width="6" height="8"/><rect x="252" y="72" width="6" height="8"/><rect x="312" y="70" width="6" height="8"/><rect x="350" y="86" width="6" height="8"/></g><circle cx="320" cy="22" r="10" fill="#fff1c9" opacity=".9"/></svg><svg class="cat" width="96" height="96" viewBox="0 0 100 100" aria-hidden="true"><!-- placeholder until the ChatGPT art (docs/art) --><path d="M22 40 L26 12 L44 30Z" fill="#1f1a24"/><path d="M78 40 L74 12 L56 30Z" fill="#1f1a24"/><path d="M27 34 L28 19 L38 29Z" fill="#f4a6a6"/><path d="M73 34 L72 19 L62 29Z" fill="#f4a6a6"/><ellipse cx="50" cy="54" rx="31" ry="27" fill="#1f1a24"/><ellipse cx="50" cy="64" rx="15" ry="11" fill="#3a3340"/><path d="M36 52 q5 -6 10 0" stroke="#ffd58a" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M54 52 q5 -6 10 0" stroke="#ffd58a" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M47 59 h6 l-3 3z" fill="#e57373"/><g stroke="#bbb" stroke-width="1.5"><path d="M32 61 L14 58"/><path d="M32 65 L15 67"/><path d="M68 61 L86 58"/><path d="M68 65 L85 67"/></g><ellipse cx="50" cy="28" rx="25" ry="9" fill="#c0392b" transform="rotate(-8 50 28)"/></svg><div class="say" id="hello"></div></div>
- <div class="pad">
-  <button class="rvb" id="rvb"></button>
-  <h2>Our Google Maps lists</h2><div class="lists" id="lists"></div>
-  <h2>Ask me to…</h2><div class="menu"><button data-go="reels"><i>🎬</i><span><b>Our reels</b><small>every reel and the places in it</small></span><span class="c">›</span></button><button data-go="map"><i>🗺</i><span><b>Map</b><small>every place we saved</small></span><span class="c">›</span></button><button data-go="near"><i>📍</i><span><b>Near me</b><small>what is close, in walking minutes</small></span><span class="c">›</span></button><button data-go="list"><i>📋</i><span><b>All places</b><small>the list, with filters</small></span><span class="c">›</span></button><button data-go="status"><i>📊</i><span><b>Status</b><small>reels, places and our hotel</small></span><span class="c">›</span></button><button data-go="pending"><i>⏳</i><span><b>Pending</b><small>not on Google Maps yet</small></span><span class="c">›</span></button><button data-go="help"><i>💬</i><span><b>Help</b><small>what I can do in the chat</small></span><span class="c">›</span></button></div>
- </div>
+ <div class="hero"><img id="skyart" alt="Emily on a Paris rooftop at dusk" hidden><div class="g"><h1 class="t1" id="hello"></h1><p>Your Paris, saved and sorted.</p></div></div>
+ <button class="rv" id="rvb"></button>
+ <div class="pair"><button data-go="near">Near me<small>Saved places by walking minutes</small></button><button data-go="map">Map<small>Filter by list, area, price</small></button></div>
+ <h2 class="t2">Browse</h2>
+ <div class="grp"><button data-go="reels"><span class="tx">Our reels<small id="nreels"></small></span><span class="ch">›</span></button><button data-go="top"><span class="tx">Most mentioned<small>Places several reels agree on</small></span><span class="ch">›</span></button></div>
+ <h2 class="t2">Our Google Maps lists</h2>
+ <div class="grp" id="lists"></div>
+ <div class="foot"><button data-go="status">Status</button><button data-go="pending">Pending</button><button data-go="help">Help</button></div>
 </section>
 <section class="view" id="review">
- <div class="qhead"><img class="helper" id="thinkart" alt="" hidden><div class="qprog" id="qprog"></div><div class="qbar"><i id="qbar"></i></div></div>
+ <div class="qhead"><img class="helper" id="thinkart" alt="" hidden><div class="qmeta"><div class="qprog" id="qprog"></div><div class="qbar"><i id="qbar"></i></div></div></div>
  <div class="qcard" id="qcard"></div>
- <div class="qbtns" id="qbtns"><button id="qprev">‹ Back</button><button id="qall">All of these</button><button id="qnone">None of these</button><button id="qskip">Skip ›</button></div>
+ <div class="qbtns" id="qbtns"><button id="qprev">‹ Back</button><button id="qskip">Skip ›</button><button id="qall">All of these</button><button id="qnone">None of these</button></div>
  <button class="sendq" id="sendq"></button>
 </section>
 <section class="view" id="reels"><div id="reelbody"></div></section>
+<section class="view" id="top"><div id="topbody"></div></section>
 <section class="view" id="info"><div class="pad" id="infobody"></div></section>
 
 <script>
 'use strict';
 const tg=window.Telegram&&Telegram.WebApp, $=id=>document.getElementById(id);
-const ICON={Food:'🍽️',Nightlife:'🍸',Daytime:'🏛️',Suggestions:'✨'}, LISTS=['Food','Nightlife','Daytime','Suggestions'];
-const CODE={Food:'F',Nightlife:'N',Daytime:'D',Suggestions:'S'}, NAME={Suggestions:'Ideas'};
+const LISTS=['Food','Nightlife','Daytime','Suggestions'], NAME={Suggestions:"Emily's ideas"};
+const CODE={Food:'F',Nightlife:'N',Daytime:'D',Suggestions:'S'};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let D=null, P=[], map, marks={}, me=null, meLayer=null, sel=null;
 const F={c:'',a:'',p:'',o:'',q:'',w:''};
 const SEL=new Set();  // list chips: any combination, none = all (owner, 2026-10-19)
 let ideas=!!localStorage.getItem('pb_ideas');  // Emily's suggestions: hidden until asked for (owner, 2026-10-19)
-if(tg){tg.ready();tg.expand();if(tg.colorScheme==='dark')document.documentElement.classList.add('dark');tg.onEvent('themeChanged',()=>document.documentElement.classList.toggle('dark',tg.colorScheme==='dark'))}
-else if(matchMedia('(prefers-color-scheme:dark)').matches)document.documentElement.classList.add('dark');
+if(tg){tg.ready();tg.expand();try{tg.setHeaderColor('#121117');tg.setBackgroundColor('#121117')}catch(e){}}
 
 async function load(){
-  if(!window.__k)throw new Error('Open the map from the 🗺 Paris map button in your chat with Paris Bot.');
-  const r=await fetch('data.bin',{cache:'no-store'});if(!r.ok)throw new Error('The map data is not there yet. Try again in a minute.');
+  if(!window.__k)throw new Error('Open the app from the 🗺 Paris map button in your chat with Emily.');
+  const r=await fetch('data.bin',{cache:'no-store'});if(!r.ok)throw new Error('The data is not there yet. Try again in a minute.');
   const raw=Uint8Array.from(atob((await r.text()).trim()),c=>c.charCodeAt(0));
   const kb=Uint8Array.from(atob(window.__k.replace(/-/g,'+').replace(/_/g,'/')+'='.repeat((4-window.__k.length%4)%4)),c=>c.charCodeAt(0));
   const key=await crypto.subtle.importKey('raw',kb,'AES-GCM',false,['decrypt']);
   try{return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:raw.slice(0,12)},key,raw.slice(12))))}
-  catch(e){throw new Error('This button\'s key is out of date. Send /start to Paris Bot for a fresh one.')}
+  catch(e){throw new Error('This button\'s key is out of date. Send /start to Emily for a fresh one.')}
 }
+const plural=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
 function walk(p){if(!me)return null;const R=6371000,r=x=>x*Math.PI/180,a=Math.sin(r(p.lat-me[0])/2)**2+Math.cos(r(me[0]))*Math.cos(r(p.lat))*Math.sin(r(p.lng-me[1])/2)**2;const m=2*R*Math.asin(Math.sqrt(a));return{m:Math.round(m),min:Math.max(1,Math.round(m/80))}}
 const pricen=p=>(p.price||'').length;
+const visible=()=>P.filter(p=>ideas||p.list!=='Suggestions');
 function filtered(){
   const q=F.q.toLowerCase().trim();
-  let out=P.filter(p=>(ideas||p.list!=='Suggestions')&&(!SEL.size||SEL.has(p.list))&&(!F.c||p.category===F.c)&&(!F.a||p.arr===F.a)&&(!F.p||(pricen(p)>0&&pricen(p)<=+F.p))
+  let out=visible().filter(p=>(!SEL.size||SEL.has(p.list))&&(!F.c||p.category===F.c)&&(!F.a||p.arr===F.a)&&(!F.p||(pricen(p)>0&&pricen(p)<=+F.p))
     &&(!q||(p.name+' '+p.sub_type+' '+p.vibe+' '+p.arr).toLowerCase().includes(q))&&(!F.w||!me||walk(p).min<=+F.w));
   const o=F.o||(me?'n':'r');
   out.sort(o==='n'&&me?(a,b)=>walk(a).m-walk(b).m:o==='a'?(a,b)=>a.name.localeCompare(b.name):(a,b)=>(b.rating||0)-(a.rating||0));
   return out;
 }
-function facts(p){return [p.sub_type,p.arr,p.price,p.rating&&p.rating+'★'+(p.reviews?' ('+p.reviews.toLocaleString()+')':'')].filter(Boolean).join(' · ')}
+const filtersOn=()=>SEL.size||F.c||F.a||F.p||F.q||F.w;
+function facts(p){return [p.sub_type,p.arr,p.price,p.rating&&p.rating+'★'].filter(Boolean).join(' · ')}
+const dot=l=>`<span class="d" style="background:var(--${l})"></span>`;
 function chips(){
   const arrs=[...new Set(P.map(p=>p.arr).filter(Boolean))].sort((a,b)=>parseInt(a)-parseInt(b));
   const sel=(id,label,opts)=>`<select class="chip${F[id]?' on':''}" data-f="${id}" aria-label="${label}"><option value="">${label}</option>${opts.map(([v,t])=>`<option value="${esc(v)}"${F[id]===String(v)?' selected':''}>${esc(t)}</option>`).join('')}</select>`;
-  $('chips').innerHTML=LISTS.filter(l=>ideas||l!=='Suggestions').map(l=>`<button class="chip${SEL.has(l)?' on':''}" data-l="${l}" aria-pressed="${SEL.has(l)}"><span class="d" style="background:var(--${l})"></span>${NAME[l]||l}</button>`).join('')
-   +`<button class="chip${ideas?' on':''}" data-ideas="1">✨ ${ideas?'Hide':'Show'} Emily's ideas</button>`
-   +(me?sel('w','Any walk',[[10,'≤ 10 min walk'],[20,'≤ 20 min walk']]):'')
-   +sel('c','Type',[['Food','Food'],['Nightlife','Nightlife'],['Daytime','Daytime']])
+  $('chips').innerHTML=LISTS.filter(l=>ideas||l!=='Suggestions').map(l=>`<button class="chip${SEL.has(l)?' on':''}" data-l="${l}" aria-pressed="${SEL.has(l)}">${dot(l)}${NAME[l]||l}</button>`).join('')
+   +(me?sel('w','Any walk',[[10,'Within 10 min'],[20,'Within 20 min']]):'')
    +sel('a','Area',arrs.map(a=>[a,a]))+sel('p','Price',[[1,'€'],[2,'€€ or less'],[3,'€€€ or less']])
-   +sel('o','Sort',[...(me?[['n','Nearest']]:[]),['r','Best rated'],['a','A to Z']]);
+   +sel('o','Sort',[...(me?[['n','Nearest']]:[]),['r','Best rated'],['a','A to Z']])
+   +`<button class="chip" data-ideas="1" aria-pressed="${ideas}">${ideas?"Hide Emily's ideas":"Show Emily's ideas"}</button>`;
 }
-function card(p){const w=walk(p);return `<div class="card" data-id="${esc(p.id)}">${w?`<div class="min"><b>${w.min}</b><small>min</small></div>`:''}<div class="bar" style="background:var(--${p.list})"></div><div class="b"><h3>${ICON[p.list]} ${esc(p.name)}</h3><div class="f">${esc(facts(p))}</div>${p.vibe?`<div class="v">${esc(p.vibe)}</div>`:''}</div></div>`}
+function photo(p,cls){const u=(p.photos||[])[0];return u?`<img src="${esc(u)}" alt="" loading="lazy" onerror="this.outerHTML='<span class=ni></span>'">`:'<span class="ni"></span>'}
+function card(p){const w=walk(p);return `<div class="card" data-id="${esc(p.id)}">${w?`<div class="min"><b>${w.min}</b><small>min</small></div>`:''}${photo(p)}<div class="b"><div class="nm">${esc(p.name)}</div><div class="f">${dot(p.list)}${esc(facts(p))}</div></div></div>`}
 function renderList(){
   sel=null;
-  const ps=filtered(), ids=new Set(ps.map(p=>p.id));
+  const ps=filtered(), ids=new Set(ps.map(p=>p.id)), base=visible().length;
   Object.entries(marks).forEach(([id,m])=>{const on=ids.has(id);if(on&&!map.hasLayer(m))m.addTo(map);if(!on&&map.hasLayer(m))map.removeLayer(m);m.setIcon(icon(m.p,false))});
-  const near=me&&!F.o?' · nearest first':'';
-  $('hd').innerHTML=`<span class="cnt">${ps.length} of ${P.length} places${near}</span>`;
-  $('body').innerHTML=ps.map(card).join('')||'<div class="empty">Nothing matches. Clear a filter.</div>';$('body').scrollTop=0;
+  $('hd').innerHTML=`<span class="cnt">${filtersOn()?`${ps.length} of ${base} places`:plural(base,'place')}${me&&!F.o?' · nearest first':''}</span>${filtersOn()?'<button class="textbtn" id="clear">Clear filters</button>':''}`;
+  $('body').innerHTML=ps.map(card).join('')||'<div class="empty">Nothing matches these filters.</div>';$('body').scrollTop=0;
+  if($('clear'))$('clear').onclick=clearFilters;
   chips();
 }
-function sources(p){return (p.sources||[]).filter(u=>/^https?:/.test(u)).map(u=>`<a href="${esc(u)}" data-out>${/instagram|tiktok|youtu/.test(u)?'▶ reel':'source'}</a>`).join('')}
+function clearFilters(){SEL.clear();Object.assign(F,{c:'',a:'',p:'',o:'',q:'',w:''});$('q').value='';$('sbox').classList.remove('has');renderList()}
+function sources(p){return (p.sources||[]).filter(u=>/^https?:/.test(u)).map(u=>`<button class="btn" data-link="${esc(u)}">${/instagram|tiktok|youtu/.test(u)?'▶ The reel':'Source'}</button>`).join('')}
 function detail(p){
   sel=p;const w=walk(p);
   Object.values(marks).forEach(m=>m.setIcon(icon(m.p,m.p.id===p.id)));
-  $('hd').innerHTML=`<button id="back">‹ All places</button><span class="cnt"></span>`;
-  $('body').innerHTML=`<div class="det"><span class="tag"><span class="d" style="width:9px;height:9px;border-radius:50%;background:var(--${p.list})"></span>${esc(D.lists[p.list]||p.list)}</span>
-   ${pics(p.photos)}<h2>${esc(p.name)}</h2><div class="f">${esc(facts(p))}${w?` · <b style="color:var(--ink)">${w.min} min walk</b>`:''}</div>
-   ${p.vibe?`<div class="v">${esc(p.vibe)}</div>`:''}${p.hours?`<div class="f">${esc(p.hours)}</div>`:''}
+  $('hd').innerHTML=`<button class="textbtn" id="back">‹ All places</button><span class="cnt"></span>`;
+  // the place first: name, facts, then Google Maps; photos and tips after (critique P1)
+  $('body').innerHTML=`<div class="det"><div class="f">${dot(p.list)}${esc(NAME[p.list]||p.list)}</div>
+   <h2>${esc(p.name)}</h2><div class="f">${esc(facts(p))}${w?` · <b style="color:var(--ink);font-weight:600">${w.min} min walk</b>`:''}</div>
+   <div class="acts"><button class="btn p" id="gm">Open in Google Maps</button><button class="btn" id="dir">Walk there</button></div>
+   ${pics(p.photos)}${p.vibe?`<p class="v">${esc(p.vibe)}</p>`:''}${p.hours?`<div class="f">${esc(p.hours)}</div>`:''}
    ${(p.tips||[]).length?`<ul>${p.tips.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`:''}
-   <div class="acts"><button class="p" id="gm">Open in Google Maps</button><button id="dir">Walk there</button></div>
    <div class="src">${sources(p)}</div>
-   <div class="mv"><p>Move to another list (the bot updates Google Maps)</p><div class="acts">${LISTS.map(l=>`<button data-mv="${l}"${l===p.list?' disabled':''}>${ICON[l]} ${NAME[l]||l}</button>`).join('')}</div></div></div>`;
+   <div class="mv"><p>Move to another list. Emily updates Google Maps.</p><div class="acts" style="margin:0">${LISTS.filter(l=>ideas||l!=='Suggestions'||p.list==='Suggestions').map(l=>`<button class="btn" data-mv="${l}"${l===p.list?' disabled':''}>${NAME[l]||l}</button>`).join('')}</div></div></div>`;
   $('back').onclick=renderList;$('gm').onclick=()=>out(p.maps);
   $('dir').onclick=()=>out(`https://www.google.com/maps/dir/?api=1&travelmode=walking&destination=${p.lat},${p.lng}&destination_place_id=${encodeURIComponent(p.id)}`);
   $('body').querySelectorAll('[data-mv]').forEach(b=>b.onclick=()=>act({a:'mv',id:p.id,l:b.dataset.mv},`Moving ${p.name} to ${NAME[b.dataset.mv]||b.dataset.mv}`));
-  $('body').scrollTop=0;if(tg){tg.BackButton.show()}
-  snap('half');
+  $('body').scrollTop=0;if(tg)tg.BackButton.show();
+  snap('half');map.setView([p.lat,p.lng],Math.max(map.getZoom(),15),{animate:false});map.panBy([0,SN.half()/2-40],{animate:false});
 }
-function icon(p,big){return L.divIcon({className:'',html:`<div class="pin${big?' sel':''}" style="background:var(--${p.list})"><span>${ICON[p.list]}</span></div>`,iconSize:big?[36,36]:[28,28],iconAnchor:big?[18,36]:[14,28]})}
+function icon(p,big){return L.divIcon({className:'',html:`<div class="pin${big?' sel':''}" style="background:var(--${p.list})"></div>`,iconSize:big?[26,26]:[18,18],iconAnchor:big?[13,13]:[9,9]})}
 function out(u){if(!u)return;tg&&tg.openLink?tg.openLink(u):window.open(u,'_blank','noopener')}
 function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),3500)}
-// A static page cannot write: the bot does it. Opened from the keyboard button, sendData hands it over (Telegram closes
-// the page); opened from the menu button, initData is set and sendData is not allowed, so a start link goes instead.
+// A static page cannot write: Emily does it. Opened from the keyboard button, sendData hands it over (Telegram closes
+// the page); opened any other way, initData is set and sendData is not allowed, so a start link goes instead.
+const canSend=()=>tg&&!tg.initData&&tg.platform!=='unknown';
 function act(o,label){
-  if(tg&&!tg.initData&&tg.platform!=='unknown'){tg.sendData(JSON.stringify(o));return}
+  if(canSend()){tg.sendData(JSON.stringify(o));return}
   const code=`mv_${CODE[o.l]}_${o.id}`;
-  if(!/^[\w-]{1,64}$/.test(code)){toast('Open the map from the 🗺 Paris map button to do this.');return}
+  if(!/^[\w-]{1,64}$/.test(code)){toast('Open the app from the 🗺 Paris map button to do this.');return}
   const u=`https://t.me/${D.bot}?start=${code}`;
-  if(tg&&tg.openTelegramLink){tg.openTelegramLink(u);toast((label||'Sending the list')+': tap Start in the chat.')}else window.open(u,'_blank','noopener');
+  if(tg&&tg.openTelegramLink){tg.openTelegramLink(u);toast(label+': tap Start in the chat.')}else window.open(u,'_blank','noopener');
 }
 // bottom sheet: peek, half, full; drag the handle or tap it
-const SN={peek:()=>190,half:()=>innerHeight*.5,full:()=>innerHeight-60};let st='peek';
-function snap(s){st=s;const h=SN[s]();document.documentElement.style.setProperty('--peek',h+'px');$('near').style.bottom=(Math.min(h,innerHeight*.5)+12)+'px'}
+const SN={peek:()=>190,half:()=>innerHeight*.52,full:()=>innerHeight-64};let st='peek';
+function snap(s){st=s;const h=SN[s]();document.documentElement.style.setProperty('--peek',h+'px');$('near').style.bottom=(Math.min(h,innerHeight*.52)+12)+'px'}
 (function(){const g=$('grab'),sh=$('sheet');let y0=null,h0=0;
  g.addEventListener('pointerdown',e=>{y0=e.clientY;h0=SN[st]();sh.classList.add('drag');g.setPointerCapture(e.pointerId)});
  g.addEventListener('pointermove',e=>{if(y0===null)return;const h=Math.max(120,Math.min(SN.full(),h0+y0-e.clientY));document.documentElement.style.setProperty('--peek',h+'px')});
@@ -232,8 +262,8 @@ function snap(s){st=s;const h=SN[s]();document.documentElement.style.setProperty
 function located(lat,lng){
   me=[lat,lng];F.o='';$('near').classList.add('on');
   if(meLayer)meLayer.remove();
-  meLayer=L.layerGroup([L.circle(me,{radius:1600,color:'#1a73e8',weight:1,dashArray:'4 6',fillOpacity:.03}),L.circle(me,{radius:800,color:'#1a73e8',weight:2,fillOpacity:.07}),
-    L.marker(me,{icon:L.divIcon({className:'',html:'<div class="me"></div>',iconSize:[18,18],iconAnchor:[9,9]}),interactive:false})]).addTo(map);
+  meLayer=L.layerGroup([L.circle(me,{radius:1600,color:'#e5485f',weight:1,dashArray:'4 6',fillOpacity:.03}),L.circle(me,{radius:800,color:'#e5485f',weight:1.5,fillOpacity:.06}),
+    L.marker(me,{icon:L.divIcon({className:'',html:'<div class="me"></div>',iconSize:[16,16],iconAnchor:[8,8]}),interactive:false})]).addTo(map);
   renderList();snap('half');map.setView(me,14,{animate:false});map.panBy([0,SN.half()/2],{animate:false});toast('Rings: 10 and 20 minutes on foot');
 }
 function nearMe(){
@@ -255,21 +285,19 @@ async function main(){
   $('q').addEventListener('input',e=>{F.q=e.target.value;$('sbox').classList.toggle('has',!!F.q);renderList()});
   $('q').addEventListener('focus',()=>snap('half'));
   $('qx').onclick=()=>{$('q').value='';F.q='';$('sbox').classList.remove('has');renderList()};
-  $('body').addEventListener('click',e=>{const a=e.target.closest('a[data-out]');if(a){e.preventDefault();return out(a.href)}
-    const c=e.target.closest('.card');if(c){const p=P.find(x=>x.id===c.dataset.id);map.setView([p.lat,p.lng],Math.max(map.getZoom(),15));detail(p)}});
+  $('body').addEventListener('click',e=>{const c=e.target.closest('.card');if(c)detail(P.find(x=>x.id===c.dataset.id))});
   $('near').onclick=nearMe;
   if(tg)tg.BackButton.onClick(()=>V==='map'&&sel?renderList():go('home'));
   snap('peek');renderList();
   emily();
 }
-// ---- Emily: home, review, info (checkin 06) ----
+// ---- Emily: home, review, reels, most mentioned, info ----
 let V='home', Q=[], qi=0;
 const LS=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}};
 let ans=LS('pb_ans',{}), sentIds=new Set(LS('pb_sent',[]));
 const keep=()=>{localStorage.setItem('pb_ans',JSON.stringify(ans));localStorage.setItem('pb_sent',JSON.stringify([...sentIds]))};
-const plural=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
 function go(v){V=v;document.body.dataset.v=v;
-  if(tg){v==='home'?tg.BackButton.hide():tg.BackButton.show();try{tg.setHeaderColor(v==='map'?'bg_color':'#2b1b4d')}catch(e){}}
+  if(tg){v==='home'?tg.BackButton.hide():tg.BackButton.show()}
   if(v==='map')setTimeout(()=>map.invalidateSize(),50);document.querySelectorAll('.view').forEach(x=>x.scrollTop=0)}
 function art(img,name,onok){const i=new Image();i.onload=()=>{img.src=i.src;img.hidden=false;onok&&onok()};i.src='art/'+name}
 function emily(){
@@ -277,14 +305,14 @@ function emily(){
   Q=(D.questions||[]).filter(q=>!sentIds.has(q.id));
   const live=new Set((D.questions||[]).map(q=>q.id));sentIds.forEach(id=>{if(!live.has(id))sentIds.delete(id)});
   Object.keys(ans).forEach(id=>{if(!live.has(+id))delete ans[id]});keep();
-  const reels=new Set(Q.map(q=>q.job)).size, h=new Date().getHours();
-  $('hello').innerHTML=`<b>${h>=5&&h<18?'Bonjour':'Bonsoir'}!</b> I'm Emily.<br>`+(Q.length?`${plural(Q.length,'place')} from ${plural(reels,'reel')} need your eye.`:'Where shall we go today?');
-  $('rvb').className='rvb'+(Q.length?'':' zero');
-  const ready=answered();
-  $('rvb').innerHTML=Q.length?`<span class="n">${Q.length}</span><span>Questions to review<small>${ready?`${plural(ready,'answer')} ready: tap, then Send`:'Which place is it? One at a time.'}</small></span><span class="go">›</span>`
-    :`<span class="n">0</span><span>Nothing to review<small>Send me a reel and I'll get to work.</small></span>`;
-  $('lists').innerHTML=LISTS.filter(l=>ideas||l!=='Suggestions').map(l=>`<button data-link="${esc((D.links||{})[l]||'')}">${ICON[l]} ${NAME[l]||l}<small>${(D.counts||{})[l]||0} places ↗</small></button>`).join('');
-  art($('skyart'),'emily-rooftop.jpg',()=>$('sky').classList.add('hasart'));art($('thinkart'),'emily-thinking.png');
+  const reels=new Set(Q.map(q=>q.job)).size, h=new Date().getHours(), ready=answered();
+  $('hello').textContent=`${h>=5&&h<18?'Bonjour':'Bonsoir'}, I'm Emily.`;
+  $('rvb').className='rv'+(Q.length?'':' zero');
+  $('rvb').innerHTML=Q.length?`<b>${Q.length}</b><span>Places to confirm<small>${ready?`${plural(ready,'answer')} ready to send`:`From ${plural(reels,'reel')}, one question at a time`}</small></span>›`
+    :`<b>0</b><span>Nothing to confirm<small>Send me a reel and I'll get to work.</small></span>`;
+  $('nreels').textContent=`${plural((D.reels||[]).length,'reel')}, newest first`;
+  $('lists').innerHTML=LISTS.filter(l=>ideas||l!=='Suggestions').map(l=>`<button data-link="${esc((D.links||{})[l]||'')}"><span class="dot" style="background:var(--${l})"></span><span class="tx">${NAME[l]||l}<small>${plural((D.counts||{})[l]||0,'place')} · opens Google Maps</small></span><span class="ch">↗</span></button>`).join('');
+  art($('skyart'),'emily-rooftop.jpg');art($('thinkart'),'emily-thinking.png');
   go(location.hash.includes('review')&&Q.length?'review':'home');if(V==='review')drawQ();
 }
 function answered(){return Q.filter(q=>q.id in ans).length}
@@ -296,58 +324,69 @@ function drawQ(){
   $('qbtns').hidden=!Q.length;
   if(!Q.length){$('qprog').innerHTML='';$('qbar').style.width='0';$('qcard').innerHTML='<div class="done"><img id="sleepart" alt="" hidden><p>All done. Nothing is waiting for you.</p></div>';art($('sleepart'),'emily-sleeping.png');return}
   qi=Math.max(0,Math.min(qi,Q.length-1));const q=Q[qi],reels=[...new Set(Q.map(x=>x.job))];
-  $('qprog').innerHTML=`<span>Question ${qi+1} of ${Q.length}</span><span>Reel ${reels.indexOf(q.job)+1} of ${reels.length}</span>`;
+  $('qprog').innerHTML=`<span class="num">Question ${qi+1} of ${Q.length}</span><span class="num">Reel ${reels.indexOf(q.job)+1} of ${reels.length}</span>`;
   $('qbar').style.width=((qi+1)/Q.length*100)+'%';
-  $('qcard').innerHTML=`<div class="from"><span>From a reel · ${esc(q.at)}${q.at_s>=0?`<span class="at">named at ${mmss(q.at_s)}</span>`:''}</span><button class="lnk2" data-link="${esc(reelAt(q))}">▶ Watch the reel</button></div>
+  $('qcard').innerHTML=`<div class="from"><span>From a reel · ${esc(q.at)}${q.at_s>=0?`<span class="at">named at ${mmss(q.at_s)}</span>`:''}</span><button class="lnk" data-link="${esc(reelAt(q))}">▶ Watch the reel</button></div>
    <h3>“${esc(q.name)}”</h3><div class="why">${esc([q.sub,q.why].filter(Boolean).join(' · '))}</div>
-   ${q.opts.map((o,i)=>`<div class="opt${ans[q.id]===i?' on':''}">${pics(o.photos)}<div class="t"><b>${esc(o.name)}</b>${esc(o.addr)}<br><button class="lnk2" data-link="${esc(o.maps)}">Open in Google Maps ↗</button></div><button class="ok" data-pick="${i}">${ans[q.id]===i?'✓ Chosen':'This one'}</button></div>`).join('')}`;
+   ${q.opts.map((o,i)=>`<div class="opt${ans[q.id]===i||ans[q.id]==='a'?' on':''}">${pics(o.photos)}<div class="row"><div class="t"><div class="nm">${esc(o.name)}</div><div class="ad">${esc(o.addr)}</div><button class="lnk lk" data-link="${esc(o.maps)}">Open in Google Maps ↗</button></div><button class="ok" data-pick="${i}">${ans[q.id]===i?'✓ Chosen':'This one'}</button></div></div>`).join('')}`;
   $('qnone').classList.toggle('on',ans[q.id]==='x');$('qall').classList.toggle('on',ans[q.id]==='a');$('qall').hidden=q.opts.length<2;
+  $('qprev').disabled=qi===0;$('qskip').disabled=qi>=Q.length-1;
 }
 function pick(v){const q=Q[qi];if(ans[q.id]===v)delete ans[q.id];else ans[q.id]=v;keep();drawQ();if(q.id in ans&&qi<Q.length-1)setTimeout(()=>{qi++;drawQ()},280)}
 // Telegram hands data to the bot only when the app was opened from the keyboard button; it then closes the app.
 function sendAnswers(){
   let r=Q.filter(q=>q.id in ans).map(q=>[q.id,ans[q.id]]);
   while(JSON.stringify({a:'pk',r}).length>4000)r=r.slice(0,-1);
-  if(!(tg&&!tg.initData&&tg.platform!=='unknown')){toast('Open me from the 🗺 Paris map button under the text box to send.');return}
+  if(!canSend()){toast('Open me from the 🗺 Paris map button under the text box to send. Your answers are kept.');return}
   r.forEach(([id])=>{sentIds.add(id);delete ans[id]});keep();tg.sendData(JSON.stringify({a:'pk',r}));
 }
-// Every reel sent, newest first, its places under it (checkin 08 r1, direction A)
+const placeRow=p=>`<div class="pr" data-place="${esc(p.id)}">${photo(p)}<div class="tx"><div class="nm">${esc(p.name)}</div><div class="f">${dot(p.list)}${esc([p.sub_type,p.arr].filter(Boolean).join(' · '))}</div></div><button class="lnk" data-link="${esc(p.maps)}">Maps ↗</button></div>`;
+// Every reel sent, newest first, its places under it (checkin 08 r1)
 const reelsOpen=new Set();
-function reelsPage(keep){
-  const byId=Object.fromEntries(P.map(p=>[p.id,p])), R=D.reels||[];
-  const row=p=>`<div class="row" data-place="${esc(p.id)}">${(p.photos||[])[0]?`<img src="${esc(p.photos[0])}" alt="" loading="lazy" onerror="this.outerHTML='<span class=ni></span>'">`:'<span class="ni"></span>'}<span><b>${esc(p.name)}</b><small>${ICON[p.list]} ${esc([p.sub_type,p.arr].filter(Boolean).join(' · '))}</small></span><button class="lnk2 mp" data-link="${esc(p.maps)}">Maps ↗</button></div>`;
-  const found=R.reduce((n,r)=>n+r.places.length,0);
-  $('reelbody').innerHTML=`<div class="pad"><h2>Our reels</h2><p style="margin:-4px 0 14px;opacity:.8;font-size:14px">${plural(R.length,'reel')} · ${plural(found,'place')} found</p></div>`+R.map(r=>{
+function reelsPage(keepView){
+  const byId=Object.fromEntries(P.map(p=>[p.id,p])), R=D.reels||[], found=R.reduce((n,r)=>n+r.places.length,0);
+  $('reelbody').innerHTML=`<div class="ttl"><h1 class="t1">Our reels</h1><p>${plural(R.length,'reel')} · ${plural(found,'place')} found</p></div>`+R.map(r=>{
     const ps=r.places.map(id=>byId[id]).filter(Boolean), qs=r.questions.filter(q=>!sentIds.has(q.id)), all=reelsOpen.has(r.job);
-    return `<div class="rl"><div class="rtop">${r.thumb?`<img class="th" src="${r.thumb}" alt="">`:''}<div class="meta"><div class="d"><span>🎬 ${esc(r.at)}</span><button class="lnk2" data-link="${esc(r.url)}">▶ Watch</button></div><p>${esc(r.summary||'A reel')}</p></div></div>
-      ${(all?ps:ps.slice(0,4)).map(row).join('')}${!all&&ps.length>4?`<button class="more" data-more="${r.job}">+ ${ps.length-4} more</button>`:''}
-      ${qs.length?`<button class="q" data-q="${qs[0].id}">🤔 ${qs.length} to review: ${esc(qs.map(q=>q.name).join(', '))} ›</button>`:''}
+    return `<div class="rl"><div class="rtop">${r.thumb?`<img class="th" src="${r.thumb}" alt="">`:''}<div class="meta"><div class="d"><span>${esc(r.at)}</span><button class="lnk" data-link="${esc(r.url)}">▶ Watch</button></div><p>${esc(r.summary||'A reel')}</p></div></div>
+      ${(all?ps:ps.slice(0,4)).map(placeRow).join('')}${!all&&ps.length>4?`<button class="more" data-more="${r.job}">${ps.length-4} more ›</button>`:''}
+      ${qs.length?`<button class="q" data-q="${qs[0].id}"><b>${qs.length}</b> to confirm: ${esc(qs.map(q=>q.name).join(', '))} ›</button>`:''}
       ${!ps.length&&!qs.length?`<div class="none">${r.status==='done'||r.status==='understood'?'No Paris place in this one.':'Emily is still on it.'}</div>`:''}</div>`}).join('');
-  if(!keep)go('reels');
+  if(!keepView)go('reels');
+}
+// Places ranked by how many reels name them (owner, 2026-10-19), the reels under each
+function topPage(){
+  const byId=Object.fromEntries(P.map(p=>[p.id,p])), cnt={};
+  (D.reels||[]).forEach(r=>r.places.forEach(id=>{if(byId[id])(cnt[id]=cnt[id]||[]).push(r)}));
+  const rows=Object.entries(cnt).sort((a,b)=>b[1].length-a[1].length||(byId[b[0]].rating||0)-(byId[a[0]].rating||0));
+  const multi=rows.filter(([,rs])=>rs.length>1).length;
+  $('topbody').innerHTML=`<div class="ttl"><h1 class="t1">Most mentioned</h1><p>${plural(rows.length,'place')} from your reels${multi?`; ${multi} named by more than one`:''}</p></div>`+rows.map(([id,rs])=>{const p=byId[id];
+    return `<div class="mm" data-place="${esc(id)}">${photo(p)}<div class="tx"><div class="nm">${esc(p.name)}</div><div class="f">${dot(p.list)}${esc(facts(p))}</div>
+     <div class="rc">${rs.map(r=>`<button data-link="${esc(r.url)}">▶ ${esc(r.at)} <span>· ${esc(r.summary||'A reel')}</span></button>`).join('')}</div></div>
+     <div class="n"><b>${rs.length}</b><small>reel${rs.length>1?'s':''}</small></div></div>`}).join('');
+  go('top');
 }
 function info(kind){
   const S=D.status||{},c=D.counts||{},j=S.jobs||{};let h='';
-  if(kind==='status')h=`<img class="infoart" src="art/emily-pinned.png" alt="" onerror="this.remove()"><h2>Status</h2><div class="info"><div><span>Reels done</span><b>${j.done||0}</b></div><div><span>Reels in the queue</span><b>${(j.queued||0)+(j.working||0)+(j.understood||0)}</b></div>
-    ${LISTS.filter(l=>ideas||l!=='Suggestions').map(l=>`<div><span>${ICON[l]} ${NAME[l]||l}</span><b>${c[l]||0}</b></div>`).join('')}<div><span>Waiting for your eye</span><b>${Q.length}</b></div>
-    <div><span>Our hotel</span><b>${esc(S.hotel||'not set yet')}</b></div><div><span>Updated</span><b>${esc((D.updated||'').replace('T',' ').slice(0,16))}</b></div></div>`;
-  if(kind==='pending')h=`<h2>Not on Google Maps yet</h2><div class="info">${(D.pending||[]).map(p=>`<div><span>${ICON[p.list]||''} ${esc(p.name)}</span>${p.maps?`<button class="lk" data-link="${esc(p.maps)}">Maps ↗</button>`:''}</div>`).join('')||'<div><span>Nothing. Everything is on the map.</span></div>'}</div>
-    <p style="opacity:.8;font-size:14px">I retry these by myself; nothing to do.</p>`;
-  if(kind==='help')h=`<img class="infoart" src="art/emily.png" alt="Emily" onerror="this.remove()"><h2>What I can do</h2><div class="helptext"><p>Send me a reel, a TikTok or a YouTube Short in the chat. I find the places, pin them on our Google Maps lists and react on your message: 👍 pinned, 🤔 a question for you here, 🤷 no Paris place.</p>
-    <p>Write to me in the chat like to a friend who knows Paris: "brunch in the Marais?", "plan Saturday", "more wine bars like that one". Say "save it" to keep a place.</p>
-    <p>Chat commands: <code>/near</code> nearest places · <code>/list</code> the list as a page · <code>/status</code> · <code>/pending</code> · <code>/hotel</code> our base · <code>/clear</code> a fresh start · <code>/help</code></p></div>`;
+  if(kind==='status')h=`<img class="infoart" src="art/emily-pinned.png" alt="" onerror="this.remove()"><h1 class="t1" style="margin:12px 0 14px">Status</h1><div class="info"><div><span>Reels done</span><b>${j.done||0}</b></div><div><span>Reels in the queue</span><b>${(j.queued||0)+(j.working||0)+(j.understood||0)}</b></div>
+    ${LISTS.filter(l=>ideas||l!=='Suggestions').map(l=>`<div><span>${NAME[l]||l}</span><b>${c[l]||0}</b></div>`).join('')}<div><span>Places to confirm</span><b>${Q.length}</b></div>
+    <div><span>Our hotel</span><b>${esc(S.hotel||'Not set yet')}</b></div><div><span>Updated</span><b>${esc((D.updated||'').replace('T',' ').slice(0,16))}</b></div></div>`;
+  if(kind==='pending'){const pd=D.pending||[];h=`<h1 class="t1" style="margin:22px 0 14px">Not on Google Maps yet</h1>`+(pd.length?`<div class="info">${pd.map(p=>`<div><span>${esc(p.name)}</span>${p.maps?`<button class="lnk" data-link="${esc(p.maps)}">Maps ↗</button>`:''}</div>`).join('')}</div><p class="note">I retry these by myself; nothing to do.</p>`:`<p class="note">Everything is on Google Maps.</p>`)}
+  if(kind==='help')h=`<img class="infoart" src="art/emily.png" alt="Emily" onerror="this.remove()"><h1 class="t1" style="margin:12px 0 14px">What I can do</h1><div class="helptext"><p>Send me a reel, a TikTok or a YouTube Short in the chat. I find the places, pin them on our Google Maps lists and react on your message: 👍 pinned, 🤔 a place to confirm here, 🤷 no Paris place.</p>
+    <p>Here: confirm places one at a time, browse our reels and the places they mention most, and find what is near you on the map. Combine the list chips, for example Food and Nightlife.</p>
+    <p>In the chat, write to me like to a friend who knows Paris: "brunch in the Marais?", "plan Saturday", "more wine bars like that one". Commands: <code>/near</code> · <code>/list</code> · <code>/status</code> · <code>/pending</code> · <code>/hotel</code> · <code>/clear</code> · <code>/help</code></p></div>`;
   $('infobody').innerHTML=h;go('info');
 }
 document.addEventListener('click',e=>{
-  const l=e.target.closest('[data-link]');if(l&&l.dataset.link){e.preventDefault();return out(l.dataset.link)}
+  const l=e.target.closest('[data-link]');if(l&&l.dataset.link){e.preventDefault();e.stopPropagation();return out(l.dataset.link)}
   const g=e.target.closest('[data-go]');if(g){const v=g.dataset.go;
-    if(v==='map'){go('map');snap('peek')}else if(v==='list'){go('map');snap('full')}else if(v==='near'){go('map');if(!me)nearMe()}else if(v==='reels')reelsPage();else info(v);return}
+    if(v==='map'){go('map');snap('peek')}else if(v==='near'){go('map');if(!me)nearMe()}else if(v==='reels')reelsPage();else if(v==='top')topPage();else info(v);return}
   const mr=e.target.closest('[data-more]');if(mr){reelsOpen.add(+mr.dataset.more);return reelsPage(true)}
   const rq=e.target.closest('[data-q]');if(rq){qi=Math.max(0,Q.findIndex(q=>q.id===+rq.dataset.q));go('review');return drawQ()}
-  const rp=e.target.closest('[data-place]');if(rp){const p=P.find(x=>x.id===rp.dataset.place);if(p){go('map');map.setView([p.lat,p.lng],15);detail(p)}return}
-  const k=e.target.closest('[data-pick]');if(k)return pick(k.dataset.pick==='x'?'x':+k.dataset.pick);
-});
+  const rp=e.target.closest('[data-place]');if(rp){const p=P.find(x=>x.id===rp.dataset.place);if(p){go('map');detail(p)}return}
+  const k=e.target.closest('[data-pick]');if(k)return pick(+k.dataset.pick);
+},true);
 $('rvb').onclick=()=>{if(Q.length){go('review');drawQ()}};
-$('qnone').onclick=()=>pick('x');$('qall').onclick=()=>pick('a');$('qprev').onclick=()=>{qi--;drawQ()};$('qskip').onclick=()=>{qi=(qi+1)%Q.length;drawQ()};
+$('qnone').onclick=()=>pick('x');$('qall').onclick=()=>pick('a');$('qprev').onclick=()=>{qi--;drawQ()};$('qskip').onclick=()=>{qi++;drawQ()};
 $('sendq').onclick=sendAnswers;
 main();
 </script></body></html>
