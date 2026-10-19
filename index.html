@@ -62,10 +62,10 @@ body[data-v=home] #home,body[data-v=review] #review,body[data-v=info] #info{disp
 .view .pad{padding:0 16px}
 .sky{position:relative;height:230px;overflow:hidden}.sky .city{position:absolute;bottom:0;left:0;width:100%;height:110px}
 .sky .cat{position:absolute;right:20px;bottom:22px}.sky .art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
-.sky.hasart{height:300px}.sky.hasart .art{display:block}.sky.hasart .city,.sky.hasart .cat{display:none}
+.sky.hasart{height:430px}.sky .art{object-position:center 58%}.sky.hasart .art{display:block}.sky.hasart .city,.sky.hasart .cat{display:none}
 .say{position:absolute;left:16px;top:18px;right:128px;background:rgba(255,245,230,.96);color:#2b1b4d;border-radius:18px;padding:10px 14px;font-weight:700;font-size:15px;line-height:1.35;z-index:2}
 .say:after{content:"";position:absolute;right:-8px;bottom:14px;border:8px solid transparent;border-left-color:rgba(255,245,230,.96);border-right:0}
-.sky.hasart .say{right:auto;max-width:62%}.sky.hasart .say:after{display:none}
+.sky.hasart .say{right:auto;max-width:46%;font-size:14px}.sky.hasart .say:after{display:none}
 .rvb{display:flex;align-items:center;gap:12px;width:100%;border:0;text-align:left;background:#ffd58a;color:#2b1b4d;border-radius:16px;padding:12px 14px;font:800 16px Nunito,sans-serif;margin-top:-8px;position:relative;z-index:3}
 .rvb .n{font:italic 700 26px "Playfair Display",serif;min-width:36px;text-align:center}.rvb small{display:block;font-weight:600;opacity:.75;font-size:13px}.rvb .go{margin-left:auto;font-size:22px}
 .rvb.zero{background:rgba(255,255,255,.14);color:#fff5e6}
@@ -91,7 +91,7 @@ body[data-v=home] #home,body[data-v=review] #review,body[data-v=info] #info{disp
 .sendq{display:block;width:calc(100% - 32px);margin:18px 16px 0;border:0;border-radius:14px;padding:15px;font:800 16px Nunito,sans-serif;background:#ffd58a;color:#2b1b4d}
 .sendq:disabled{opacity:.45}
 [hidden]{display:none!important}
-.helper{display:block;width:84px;height:84px;object-fit:contain;margin:0 auto -6px}
+.helper{display:block;width:120px;height:120px;object-fit:contain;margin:-4px auto -10px}.infoart{display:block;width:150px;height:150px;object-fit:contain;margin:8px auto -8px}
 .done{text-align:center;padding:30px 16px;font-weight:700}.done img{width:180px;height:180px;object-fit:contain;display:block;margin:0 auto 10px}
 .info{background:rgba(20,10,40,.35);border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:6px 14px;font-size:15px}
 .info div{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid rgba(255,255,255,.1)}.info div:first-child{border-top:0}
@@ -255,7 +255,7 @@ const plural=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
 function go(v){V=v;document.body.dataset.v=v;
   if(tg){v==='home'?tg.BackButton.hide():tg.BackButton.show();try{tg.setHeaderColor(v==='map'?'bg_color':'#2b1b4d')}catch(e){}}
   if(v==='map')setTimeout(()=>map.invalidateSize(),50);document.querySelectorAll('.view').forEach(x=>x.scrollTop=0)}
-function art(img,name,onok){const i=new Image();i.onload=()=>{img.src=i.src;img.hidden=false;onok&&onok()};i.src='art/'+name+'.png'}
+function art(img,name,onok){const i=new Image();i.onload=()=>{img.src=i.src;img.hidden=false;onok&&onok()};i.src='art/'+name}
 function emily(){
   // answers already sent leave the queue at once; the snapshot catches up within minutes
   Q=(D.questions||[]).filter(q=>!sentIds.has(q.id));
@@ -267,14 +267,14 @@ function emily(){
   $('rvb').innerHTML=Q.length?`<span class="n">${Q.length}</span><span>Questions to review<small>Which place is it? One at a time.</small></span><span class="go">›</span>`
     :`<span class="n">0</span><span>Nothing to review<small>Send me a reel and I'll get to work.</small></span>`;
   $('lists').innerHTML=LISTS.map(l=>`<button data-link="${esc((D.links||{})[l]||'')}">${ICON[l]} ${NAME[l]||l}<small>${(D.counts||{})[l]||0} places ↗</small></button>`).join('');
-  art($('skyart'),'emily-rooftop',()=>$('sky').classList.add('hasart'));art($('thinkart'),'emily-thinking');
+  art($('skyart'),'emily-rooftop.jpg',()=>$('sky').classList.add('hasart'));art($('thinkart'),'emily-thinking.png');
   go(location.hash.includes('review')&&Q.length?'review':'home');if(V==='review')drawQ();
 }
 function answered(){return Q.filter(q=>q.id in ans).length}
 function drawQ(){
   const n=answered();$('sendq').disabled=!n;$('sendq').textContent=n?`Send ${plural(n,'answer')}`:'Pick a place to start';
   $('qbtns').hidden=!Q.length;
-  if(!Q.length){$('qprog').innerHTML='';$('qbar').style.width='0';$('qcard').innerHTML='<div class="done"><img id="sleepart" alt="" hidden><p>All done. Nothing is waiting for you.</p></div>';art($('sleepart'),'emily-sleeping');return}
+  if(!Q.length){$('qprog').innerHTML='';$('qbar').style.width='0';$('qcard').innerHTML='<div class="done"><img id="sleepart" alt="" hidden><p>All done. Nothing is waiting for you.</p></div>';art($('sleepart'),'emily-sleeping.png');return}
   qi=Math.max(0,Math.min(qi,Q.length-1));const q=Q[qi],reels=[...new Set(Q.map(x=>x.job))];
   $('qprog').innerHTML=`<span>Question ${qi+1} of ${Q.length}</span><span>Reel ${reels.indexOf(q.job)+1} of ${reels.length}</span>`;
   $('qbar').style.width=((qi+1)/Q.length*100)+'%';
@@ -293,12 +293,12 @@ function sendAnswers(){
 }
 function info(kind){
   const S=D.status||{},c=D.counts||{},j=S.jobs||{};let h='';
-  if(kind==='status')h=`<h2>Status</h2><div class="info"><div><span>Reels done</span><b>${j.done||0}</b></div><div><span>Reels in the queue</span><b>${(j.queued||0)+(j.working||0)+(j.understood||0)}</b></div>
+  if(kind==='status')h=`<img class="infoart" src="art/emily-pinned.png" alt="" onerror="this.remove()"><h2>Status</h2><div class="info"><div><span>Reels done</span><b>${j.done||0}</b></div><div><span>Reels in the queue</span><b>${(j.queued||0)+(j.working||0)+(j.understood||0)}</b></div>
     ${LISTS.map(l=>`<div><span>${ICON[l]} ${NAME[l]||l}</span><b>${c[l]||0}</b></div>`).join('')}<div><span>Waiting for your eye</span><b>${Q.length}</b></div>
     <div><span>Our hotel</span><b>${esc(S.hotel||'not set yet')}</b></div><div><span>Updated</span><b>${esc((D.updated||'').replace('T',' ').slice(0,16))}</b></div></div>`;
   if(kind==='pending')h=`<h2>Not on Google Maps yet</h2><div class="info">${(D.pending||[]).map(p=>`<div><span>${ICON[p.list]||''} ${esc(p.name)}</span>${p.maps?`<button class="lk" data-link="${esc(p.maps)}">Maps ↗</button>`:''}</div>`).join('')||'<div><span>Nothing. Everything is on the map.</span></div>'}</div>
     <p style="opacity:.8;font-size:14px">I retry these by myself; nothing to do.</p>`;
-  if(kind==='help')h=`<h2>What I can do</h2><div class="helptext"><p>Send me a reel, a TikTok or a YouTube Short in the chat. I find the places, pin them on our Google Maps lists and react on your message: 👍 pinned, 🤔 a question for you here, 🤷 no Paris place.</p>
+  if(kind==='help')h=`<img class="infoart" src="art/emily.png" alt="Emily" onerror="this.remove()"><h2>What I can do</h2><div class="helptext"><p>Send me a reel, a TikTok or a YouTube Short in the chat. I find the places, pin them on our Google Maps lists and react on your message: 👍 pinned, 🤔 a question for you here, 🤷 no Paris place.</p>
     <p>Write to me in the chat like to a friend who knows Paris: "brunch in the Marais?", "plan Saturday", "more wine bars like that one". Say "save it" to keep a place.</p>
     <p>Chat commands: <code>/near</code> nearest places · <code>/list</code> the list as a page · <code>/status</code> · <code>/pending</code> · <code>/hotel</code> our base · <code>/clear</code> a fresh start · <code>/help</code></p></div>`;
   $('infobody').innerHTML=h;go('info');
