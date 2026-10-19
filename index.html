@@ -87,7 +87,7 @@ body[data-v=home] #home,body[data-v=review] #review,body[data-v=info] #info{disp
 .opt .ok{border:0;background:#2b1b4d;color:#ffd58a;border-radius:10px;padding:8px 11px;font:800 13.5px Nunito,sans-serif;flex:none}
 .opt.on .ok{background:#1f8a5b;color:#fff}
 .qbtns{display:flex;gap:8px;margin:14px 16px 0}.qbtns button{flex:1;border:0;border-radius:14px;padding:12px 6px;font:800 15px Nunito,sans-serif;background:rgba(255,255,255,.14);color:#fff5e6}
-.qbtns button.on{background:#c0392b}
+.qbtns button.on{background:#c0392b}#qall.on{background:#1f8a5b}.qbtns{flex-wrap:wrap}.qbtns button{flex:1 1 40%}
 .sendq{display:block;width:calc(100% - 32px);margin:18px 16px 0;border:0;border-radius:14px;padding:15px;font:800 16px Nunito,sans-serif;background:#ffd58a;color:#2b1b4d}
 .sendq:disabled{opacity:.45}
 [hidden]{display:none!important}
@@ -118,7 +118,7 @@ body[data-v=home] #home,body[data-v=review] #review,body[data-v=info] #info{disp
 <section class="view" id="review">
  <div class="qhead"><img class="helper" id="thinkart" alt="" hidden><div class="qprog" id="qprog"></div><div class="qbar"><i id="qbar"></i></div></div>
  <div class="qcard" id="qcard"></div>
- <div class="qbtns" id="qbtns"><button id="qprev">‹ Back</button><button id="qnone">None of these</button><button id="qskip">Skip ›</button></div>
+ <div class="qbtns" id="qbtns"><button id="qprev">‹ Back</button><button id="qall">All of these</button><button id="qnone">None of these</button><button id="qskip">Skip ›</button></div>
  <button class="sendq" id="sendq"></button>
 </section>
 <section class="view" id="info"><div class="pad" id="infobody"></div></section>
@@ -281,7 +281,7 @@ function drawQ(){
   $('qcard').innerHTML=`<div class="from"><span>From a reel${q.by?' '+esc(q.by)+' sent':''} · ${esc(q.at)}</span><button class="lnk2" data-link="${esc(q.url)}">▶ Watch the reel</button></div>
    <h3>“${esc(q.name)}”</h3><div class="why">${esc([q.sub,q.why].filter(Boolean).join(' · '))}</div>
    ${q.opts.map((o,i)=>`<div class="opt${ans[q.id]===i?' on':''}"><div class="t"><b>${esc(o.name)}</b>${esc(o.addr)}<br><button class="lnk2" data-link="${esc(o.maps)}">Open in Google Maps ↗</button></div><button class="ok" data-pick="${i}">${ans[q.id]===i?'✓ Chosen':'This one'}</button></div>`).join('')}`;
-  $('qnone').classList.toggle('on',ans[q.id]==='x');
+  $('qnone').classList.toggle('on',ans[q.id]==='x');$('qall').classList.toggle('on',ans[q.id]==='a');$('qall').hidden=q.opts.length<2;
 }
 function pick(v){const q=Q[qi];if(ans[q.id]===v)delete ans[q.id];else ans[q.id]=v;keep();drawQ();if(q.id in ans&&qi<Q.length-1)setTimeout(()=>{qi++;drawQ()},280)}
 // Telegram hands data to the bot only when the app was opened from the keyboard button; it then closes the app.
@@ -310,7 +310,7 @@ document.addEventListener('click',e=>{
   const k=e.target.closest('[data-pick]');if(k)return pick(k.dataset.pick==='x'?'x':+k.dataset.pick);
 });
 $('rvb').onclick=()=>{if(Q.length){go('review');drawQ()}};
-$('qnone').onclick=()=>pick('x');$('qprev').onclick=()=>{qi--;drawQ()};$('qskip').onclick=()=>{qi=(qi+1)%Q.length;drawQ()};
+$('qnone').onclick=()=>pick('x');$('qall').onclick=()=>pick('a');$('qprev').onclick=()=>{qi--;drawQ()};$('qskip').onclick=()=>{qi=(qi+1)%Q.length;drawQ()};
 $('sendq').onclick=sendAnswers;
 main();
 </script></body></html>
