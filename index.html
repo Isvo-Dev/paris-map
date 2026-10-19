@@ -4,6 +4,7 @@
 <!-- Paris Bot Mini App (F18). Public code, no data: the places come from data.bin, decrypted with the #k= key. -->
 <script>window.__k=(location.hash.match(/[#&]k=([\w-]+)/)||[])[1]||sessionStorage.getItem('pk')||'';if(window.__k)sessionStorage.setItem('pk',window.__k)</script>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <style>
@@ -53,6 +54,49 @@ select.chip.on{background-color:var(--acc)}
 .empty{color:var(--sub);padding:18px 0;text-align:center}
 .leaflet-control-attribution{font-size:9px}.leaflet-top{top:110px}
 @media(prefers-reduced-motion:reduce){.sheet,.fab{transition:none}}
+/* Emily's views (checkin 06: B "Les Toits", one question at a time). They cover the map, which stays laid out below. */
+.view{position:fixed;inset:0;z-index:950;overflow-y:auto;display:none;font-family:Nunito,system-ui,sans-serif;color:#fff5e6;
+ background:linear-gradient(#2b1b4d 0%,#4a2a5e 38%,#7a3e5c 72%,#c26a4e 100%);padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+body[data-v=home] #home,body[data-v=review] #review,body[data-v=info] #info{display:block}
+.view h2{font:italic 700 20px "Playfair Display",serif;color:#ffd58a;margin:20px 0 10px}
+.view .pad{padding:0 16px}
+.sky{position:relative;height:230px;overflow:hidden}.sky .city{position:absolute;bottom:0;left:0;width:100%;height:110px}
+.sky .cat{position:absolute;right:20px;bottom:22px}.sky .art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
+.sky.hasart{height:300px}.sky.hasart .art{display:block}.sky.hasart .city,.sky.hasart .cat{display:none}
+.say{position:absolute;left:16px;top:18px;right:128px;background:rgba(255,245,230,.96);color:#2b1b4d;border-radius:18px;padding:10px 14px;font-weight:700;font-size:15px;line-height:1.35;z-index:2}
+.say:after{content:"";position:absolute;right:-8px;bottom:14px;border:8px solid transparent;border-left-color:rgba(255,245,230,.96);border-right:0}
+.sky.hasart .say{right:auto;max-width:62%}.sky.hasart .say:after{display:none}
+.rvb{display:flex;align-items:center;gap:12px;width:100%;border:0;text-align:left;background:#ffd58a;color:#2b1b4d;border-radius:16px;padding:12px 14px;font:800 16px Nunito,sans-serif;margin-top:-8px;position:relative;z-index:3}
+.rvb .n{font:italic 700 26px "Playfair Display",serif;min-width:36px;text-align:center}.rvb small{display:block;font-weight:600;opacity:.75;font-size:13px}.rvb .go{margin-left:auto;font-size:22px}
+.rvb.zero{background:rgba(255,255,255,.14);color:#fff5e6}
+.lists{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lists button{border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.12);color:#fff5e6;border-radius:14px;padding:10px 12px;text-align:left;font:800 15px Nunito,sans-serif}
+.lists small{display:block;font-weight:600;opacity:.75;font-size:12.5px}
+.menu{background:rgba(20,10,40,.35);border:1px solid rgba(255,255,255,.14);border-radius:16px;overflow:hidden}
+.menu button{display:flex;align-items:center;gap:12px;width:100%;border:0;border-top:1px solid rgba(255,255,255,.1);background:none;color:#fff5e6;padding:11px 12px;text-align:left;font:inherit}
+.menu button:first-child{border-top:0}.menu i{font-style:normal;width:36px;height:36px;border-radius:10px;background:rgba(255,213,138,.18);display:grid;place-items:center;font-size:18px;flex:none}
+.menu b{display:block;font-size:16px}.menu small{opacity:.72;font-size:13px}.menu .c{margin-left:auto;opacity:.5;font-size:18px}
+.qhead{padding:14px 16px 0}.qprog{display:flex;justify-content:space-between;font-weight:700;opacity:.85;font-size:13.5px}
+.qbar{height:5px;border-radius:3px;background:rgba(255,255,255,.2);margin:6px 0 14px}.qbar i{display:block;height:100%;background:#ffd58a;border-radius:3px;transition:width .2s}
+.qcard{background:#fff5e6;color:#2b1b4d;border-radius:20px;padding:14px;margin:0 16px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.qcard .from{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;color:#7a3e5c;gap:8px}
+.qcard h3{font:italic 700 23px "Playfair Display",serif;margin:8px 0 2px}.qcard .why{font-size:13.5px;color:#6b5a7a;margin-bottom:6px}
+.lnk2{border:0;background:none;color:#1c6fd0;font:800 13.5px Nunito,sans-serif;padding:4px 0;white-space:nowrap}
+.opt{border:2px solid #ead9c4;border-radius:14px;padding:10px 11px;margin:8px 0;display:flex;align-items:center;gap:8px}
+.opt .t{flex:1;font-size:13.5px;min-width:0}.opt b{display:block;font-size:15px}.opt.on{border-color:#2b1b4d;background:#fff}
+.opt .ok{border:0;background:#2b1b4d;color:#ffd58a;border-radius:10px;padding:8px 11px;font:800 13.5px Nunito,sans-serif;flex:none}
+.opt.on .ok{background:#1f8a5b;color:#fff}
+.qbtns{display:flex;gap:8px;margin:14px 16px 0}.qbtns button{flex:1;border:0;border-radius:14px;padding:12px 6px;font:800 15px Nunito,sans-serif;background:rgba(255,255,255,.14);color:#fff5e6}
+.qbtns button.on{background:#c0392b}
+.sendq{display:block;width:calc(100% - 32px);margin:18px 16px 0;border:0;border-radius:14px;padding:15px;font:800 16px Nunito,sans-serif;background:#ffd58a;color:#2b1b4d}
+.sendq:disabled{opacity:.45}
+[hidden]{display:none!important}
+.helper{display:block;width:84px;height:84px;object-fit:contain;margin:0 auto -6px}
+.done{text-align:center;padding:30px 16px;font-weight:700}.done img{width:180px;height:180px;object-fit:contain;display:block;margin:0 auto 10px}
+.info{background:rgba(20,10,40,.35);border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:6px 14px;font-size:15px}
+.info div{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid rgba(255,255,255,.1)}.info div:first-child{border-top:0}
+.info span{opacity:.8}.info .lk{color:#ffd58a;border:0;background:none;font:inherit;padding:0;white-space:nowrap}
+.helptext p{margin:0 0 10px;line-height:1.45}.helptext code{color:#ffd58a;font-family:inherit;font-weight:800}
 </style></head><body>
 <div id="map"></div>
 <div class="top">
@@ -62,7 +106,23 @@ select.chip.on{background-color:var(--acc)}
 <button class="fab" id="near" aria-label="Near me">◎</button>
 <div class="sheet" id="sheet"><div class="grab" id="grab"><i></i></div><div class="hd" id="hd"></div><div class="body" id="body"></div></div>
 <div class="toast" id="toast" role="status"></div>
-<div class="msg" id="msg">Opening the map…</div>
+<div class="msg" id="msg">Opening…</div>
+<section class="view" id="home">
+ <div class="sky" id="sky"><img class="art" id="skyart" alt="Emily on a Paris rooftop at dusk"><svg class="city" viewBox="0 0 390 110" preserveAspectRatio="none" aria-hidden="true"><path d="M0 110 V70 h30 v-12 h16 v12 h20 V50 h24 v60Z M90 110 V62 h18 l6 -10 l6 10 h18 v48Z" fill="#1d1233"/><path d="M170 110 L186 40 L190 40 L206 110Z" fill="#1d1233"/><path d="M188 40 V18" stroke="#1d1233" stroke-width="3"/><path d="M206 110 V66 h26 v-10 h12 v10 h30 V58 h20 l8 -12 l8 12 v52 h80 V74 h-30 Z" fill="#1d1233"/><g fill="#ffd58a"><rect x="38" y="80" width="6" height="8"/><rect x="100" y="74" width="6" height="8"/><rect x="120" y="74" width="6" height="8"/><rect x="224" y="76" width="6" height="8"/><rect x="252" y="72" width="6" height="8"/><rect x="312" y="70" width="6" height="8"/><rect x="350" y="86" width="6" height="8"/></g><circle cx="320" cy="22" r="10" fill="#fff1c9" opacity=".9"/></svg><svg class="cat" width="96" height="96" viewBox="0 0 100 100" aria-hidden="true"><!-- placeholder until the ChatGPT art (docs/art) --><path d="M22 40 L26 12 L44 30Z" fill="#1f1a24"/><path d="M78 40 L74 12 L56 30Z" fill="#1f1a24"/><path d="M27 34 L28 19 L38 29Z" fill="#f4a6a6"/><path d="M73 34 L72 19 L62 29Z" fill="#f4a6a6"/><ellipse cx="50" cy="54" rx="31" ry="27" fill="#1f1a24"/><ellipse cx="50" cy="64" rx="15" ry="11" fill="#3a3340"/><path d="M36 52 q5 -6 10 0" stroke="#ffd58a" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M54 52 q5 -6 10 0" stroke="#ffd58a" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M47 59 h6 l-3 3z" fill="#e57373"/><g stroke="#bbb" stroke-width="1.5"><path d="M32 61 L14 58"/><path d="M32 65 L15 67"/><path d="M68 61 L86 58"/><path d="M68 65 L85 67"/></g><ellipse cx="50" cy="28" rx="25" ry="9" fill="#c0392b" transform="rotate(-8 50 28)"/></svg><div class="say" id="hello"></div></div>
+ <div class="pad">
+  <button class="rvb" id="rvb"></button>
+  <h2>Our Google Maps lists</h2><div class="lists" id="lists"></div>
+  <h2>Ask me to…</h2><div class="menu"><button data-go="map"><i>🗺</i><span><b>Map</b><small>every place we saved</small></span><span class="c">›</span></button><button data-go="near"><i>📍</i><span><b>Near me</b><small>what is close, in walking minutes</small></span><span class="c">›</span></button><button data-go="list"><i>📋</i><span><b>All places</b><small>the list, with filters</small></span><span class="c">›</span></button><button data-go="status"><i>📊</i><span><b>Status</b><small>reels, places and our hotel</small></span><span class="c">›</span></button><button data-go="pending"><i>⏳</i><span><b>Pending</b><small>not on Google Maps yet</small></span><span class="c">›</span></button><button data-go="help"><i>💬</i><span><b>Help</b><small>what I can do in the chat</small></span><span class="c">›</span></button></div>
+ </div>
+</section>
+<section class="view" id="review">
+ <div class="qhead"><img class="helper" id="thinkart" alt="" hidden><div class="qprog" id="qprog"></div><div class="qbar"><i id="qbar"></i></div></div>
+ <div class="qcard" id="qcard"></div>
+ <div class="qbtns" id="qbtns"><button id="qprev">‹ Back</button><button id="qnone">None of these</button><button id="qskip">Skip ›</button></div>
+ <button class="sendq" id="sendq"></button>
+</section>
+<section class="view" id="info"><div class="pad" id="infobody"></div></section>
+
 <script>
 'use strict';
 const tg=window.Telegram&&Telegram.WebApp, $=id=>document.getElementById(id);
@@ -105,7 +165,7 @@ function chips(){
 }
 function card(p){const w=walk(p);return `<div class="card" data-id="${esc(p.id)}">${w?`<div class="min"><b>${w.min}</b><small>min</small></div>`:''}<div class="bar" style="background:var(--${p.list})"></div><div class="b"><h3>${ICON[p.list]} ${esc(p.name)}</h3><div class="f">${esc(facts(p))}</div>${p.vibe?`<div class="v">${esc(p.vibe)}</div>`:''}</div></div>`}
 function renderList(){
-  sel=null;if(tg)tg.BackButton.hide();
+  sel=null;
   const ps=filtered(), ids=new Set(ps.map(p=>p.id));
   Object.entries(marks).forEach(([id,m])=>{const on=ids.has(id);if(on&&!map.hasLayer(m))m.addTo(map);if(!on&&map.hasLayer(m))map.removeLayer(m);m.setIcon(icon(m.p,false))});
   const near=me&&!F.o?' · nearest first':'';
@@ -182,8 +242,75 @@ async function main(){
   $('body').addEventListener('click',e=>{const a=e.target.closest('a[data-out]');if(a){e.preventDefault();return out(a.href)}
     const c=e.target.closest('.card');if(c){const p=P.find(x=>x.id===c.dataset.id);map.setView([p.lat,p.lng],Math.max(map.getZoom(),15));detail(p)}});
   $('near').onclick=nearMe;
-  if(tg)tg.BackButton.onClick(renderList);
+  if(tg)tg.BackButton.onClick(()=>V==='map'&&sel?renderList():go('home'));
   snap('peek');renderList();
+  emily();
 }
+// ---- Emily: home, review, info (checkin 06) ----
+let V='home', Q=[], qi=0;
+const LS=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}};
+let ans=LS('pb_ans',{}), sentIds=new Set(LS('pb_sent',[]));
+const keep=()=>{localStorage.setItem('pb_ans',JSON.stringify(ans));localStorage.setItem('pb_sent',JSON.stringify([...sentIds]))};
+const plural=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
+function go(v){V=v;document.body.dataset.v=v;
+  if(tg){v==='home'?tg.BackButton.hide():tg.BackButton.show();try{tg.setHeaderColor(v==='map'?'bg_color':'#2b1b4d')}catch(e){}}
+  if(v==='map')setTimeout(()=>map.invalidateSize(),50);document.querySelectorAll('.view').forEach(x=>x.scrollTop=0)}
+function art(img,name,onok){const i=new Image();i.onload=()=>{img.src=i.src;img.hidden=false;onok&&onok()};i.src='art/'+name+'.png'}
+function emily(){
+  // answers already sent leave the queue at once; the snapshot catches up within minutes
+  Q=(D.questions||[]).filter(q=>!sentIds.has(q.id));
+  const live=new Set((D.questions||[]).map(q=>q.id));sentIds.forEach(id=>{if(!live.has(id))sentIds.delete(id)});
+  Object.keys(ans).forEach(id=>{if(!live.has(+id))delete ans[id]});keep();
+  const reels=new Set(Q.map(q=>q.job)).size, h=new Date().getHours();
+  $('hello').innerHTML=`<b>${h>=5&&h<18?'Bonjour':'Bonsoir'}!</b> I'm Emily.<br>`+(Q.length?`${plural(Q.length,'place')} from ${plural(reels,'reel')} need your eye.`:'Where shall we go today?');
+  $('rvb').className='rvb'+(Q.length?'':' zero');
+  $('rvb').innerHTML=Q.length?`<span class="n">${Q.length}</span><span>Questions to review<small>Which place is it? One at a time.</small></span><span class="go">›</span>`
+    :`<span class="n">0</span><span>Nothing to review<small>Send me a reel and I'll get to work.</small></span>`;
+  $('lists').innerHTML=LISTS.map(l=>`<button data-link="${esc((D.links||{})[l]||'')}">${ICON[l]} ${NAME[l]||l}<small>${(D.counts||{})[l]||0} places ↗</small></button>`).join('');
+  art($('skyart'),'emily-rooftop',()=>$('sky').classList.add('hasart'));art($('thinkart'),'emily-thinking');
+  go(location.hash.includes('review')&&Q.length?'review':'home');if(V==='review')drawQ();
+}
+function answered(){return Q.filter(q=>q.id in ans).length}
+function drawQ(){
+  const n=answered();$('sendq').disabled=!n;$('sendq').textContent=n?`Send ${plural(n,'answer')}`:'Pick a place to start';
+  $('qbtns').hidden=!Q.length;
+  if(!Q.length){$('qprog').innerHTML='';$('qbar').style.width='0';$('qcard').innerHTML='<div class="done"><img id="sleepart" alt="" hidden><p>All done. Nothing is waiting for you.</p></div>';art($('sleepart'),'emily-sleeping');return}
+  qi=Math.max(0,Math.min(qi,Q.length-1));const q=Q[qi],reels=[...new Set(Q.map(x=>x.job))];
+  $('qprog').innerHTML=`<span>Question ${qi+1} of ${Q.length}</span><span>Reel ${reels.indexOf(q.job)+1} of ${reels.length}</span>`;
+  $('qbar').style.width=((qi+1)/Q.length*100)+'%';
+  $('qcard').innerHTML=`<div class="from"><span>From a reel${q.by?' '+esc(q.by)+' sent':''} · ${esc(q.at)}</span><button class="lnk2" data-link="${esc(q.url)}">▶ Watch the reel</button></div>
+   <h3>“${esc(q.name)}”</h3><div class="why">${esc([q.sub,q.why].filter(Boolean).join(' · '))}</div>
+   ${q.opts.map((o,i)=>`<div class="opt${ans[q.id]===i?' on':''}"><div class="t"><b>${esc(o.name)}</b>${esc(o.addr)}<br><button class="lnk2" data-link="${esc(o.maps)}">Open in Google Maps ↗</button></div><button class="ok" data-pick="${i}">${ans[q.id]===i?'✓ Chosen':'This one'}</button></div>`).join('')}`;
+  $('qnone').classList.toggle('on',ans[q.id]==='x');
+}
+function pick(v){const q=Q[qi];if(ans[q.id]===v)delete ans[q.id];else ans[q.id]=v;keep();drawQ();if(q.id in ans&&qi<Q.length-1)setTimeout(()=>{qi++;drawQ()},280)}
+// Telegram hands data to the bot only when the app was opened from the keyboard button; it then closes the app.
+function sendAnswers(){
+  let r=Q.filter(q=>q.id in ans).map(q=>[q.id,ans[q.id]]);
+  while(JSON.stringify({a:'pk',r}).length>4000)r=r.slice(0,-1);
+  if(!(tg&&!tg.initData&&tg.platform!=='unknown')){toast('Open me from the 🗺 Paris map button under the text box to send.');return}
+  r.forEach(([id])=>{sentIds.add(id);delete ans[id]});keep();tg.sendData(JSON.stringify({a:'pk',r}));
+}
+function info(kind){
+  const S=D.status||{},c=D.counts||{},j=S.jobs||{};let h='';
+  if(kind==='status')h=`<h2>Status</h2><div class="info"><div><span>Reels done</span><b>${j.done||0}</b></div><div><span>Reels in the queue</span><b>${(j.queued||0)+(j.working||0)+(j.understood||0)}</b></div>
+    ${LISTS.map(l=>`<div><span>${ICON[l]} ${NAME[l]||l}</span><b>${c[l]||0}</b></div>`).join('')}<div><span>Waiting for your eye</span><b>${Q.length}</b></div>
+    <div><span>Our hotel</span><b>${esc(S.hotel||'not set yet')}</b></div><div><span>Updated</span><b>${esc((D.updated||'').replace('T',' ').slice(0,16))}</b></div></div>`;
+  if(kind==='pending')h=`<h2>Not on Google Maps yet</h2><div class="info">${(D.pending||[]).map(p=>`<div><span>${ICON[p.list]||''} ${esc(p.name)}</span>${p.maps?`<button class="lk" data-link="${esc(p.maps)}">Maps ↗</button>`:''}</div>`).join('')||'<div><span>Nothing. Everything is on the map.</span></div>'}</div>
+    <p style="opacity:.8;font-size:14px">I retry these by myself; nothing to do.</p>`;
+  if(kind==='help')h=`<h2>What I can do</h2><div class="helptext"><p>Send me a reel, a TikTok or a YouTube Short in the chat. I find the places, pin them on our Google Maps lists and react on your message: 👍 pinned, 🤔 a question for you here, 🤷 no Paris place.</p>
+    <p>Write to me in the chat like to a friend who knows Paris: "brunch in the Marais?", "plan Saturday", "more wine bars like that one". Say "save it" to keep a place.</p>
+    <p>Chat commands: <code>/near</code> nearest places · <code>/list</code> the list as a page · <code>/status</code> · <code>/pending</code> · <code>/hotel</code> our base · <code>/clear</code> a fresh start · <code>/help</code></p></div>`;
+  $('infobody').innerHTML=h;go('info');
+}
+document.addEventListener('click',e=>{
+  const l=e.target.closest('[data-link]');if(l&&l.dataset.link){e.preventDefault();return out(l.dataset.link)}
+  const g=e.target.closest('[data-go]');if(g){const v=g.dataset.go;
+    if(v==='map'){go('map');snap('peek')}else if(v==='list'){go('map');snap('full')}else if(v==='near'){go('map');if(!me)nearMe()}else info(v);return}
+  const k=e.target.closest('[data-pick]');if(k)return pick(k.dataset.pick==='x'?'x':+k.dataset.pick);
+});
+$('rvb').onclick=()=>{if(Q.length){go('review');drawQ()}};
+$('qnone').onclick=()=>pick('x');$('qprev').onclick=()=>{qi--;drawQ()};$('qskip').onclick=()=>{qi=(qi+1)%Q.length;drawQ()};
+$('sendq').onclick=sendAnswers;
 main();
 </script></body></html>
