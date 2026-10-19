@@ -144,7 +144,8 @@ const ICON={Food:'🍽️',Nightlife:'🍸',Daytime:'🏛️',Suggestions:'✨'}
 const CODE={Food:'F',Nightlife:'N',Daytime:'D',Suggestions:'S'}, NAME={Suggestions:'Ideas'};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let D=null, P=[], map, marks={}, me=null, meLayer=null, sel=null;
-const F={l:'',c:'',a:'',p:'',o:'',q:'',w:''};
+const F={c:'',a:'',p:'',o:'',q:'',w:''};
+const SEL=new Set();  // list chips: any combination, none = all (owner, 2026-10-19)
 let ideas=!!localStorage.getItem('pb_ideas');  // Emily's suggestions: hidden until asked for (owner, 2026-10-19)
 if(tg){tg.ready();tg.expand();if(tg.colorScheme==='dark')document.documentElement.classList.add('dark');tg.onEvent('themeChanged',()=>document.documentElement.classList.toggle('dark',tg.colorScheme==='dark'))}
 else if(matchMedia('(prefers-color-scheme:dark)').matches)document.documentElement.classList.add('dark');
@@ -162,7 +163,7 @@ function walk(p){if(!me)return null;const R=6371000,r=x=>x*Math.PI/180,a=Math.si
 const pricen=p=>(p.price||'').length;
 function filtered(){
   const q=F.q.toLowerCase().trim();
-  let out=P.filter(p=>(ideas||p.list!=='Suggestions')&&(!F.l||p.list===F.l)&&(!F.c||p.category===F.c)&&(!F.a||p.arr===F.a)&&(!F.p||(pricen(p)>0&&pricen(p)<=+F.p))
+  let out=P.filter(p=>(ideas||p.list!=='Suggestions')&&(!SEL.size||SEL.has(p.list))&&(!F.c||p.category===F.c)&&(!F.a||p.arr===F.a)&&(!F.p||(pricen(p)>0&&pricen(p)<=+F.p))
     &&(!q||(p.name+' '+p.sub_type+' '+p.vibe+' '+p.arr).toLowerCase().includes(q))&&(!F.w||!me||walk(p).min<=+F.w));
   const o=F.o||(me?'n':'r');
   out.sort(o==='n'&&me?(a,b)=>walk(a).m-walk(b).m:o==='a'?(a,b)=>a.name.localeCompare(b.name):(a,b)=>(b.rating||0)-(a.rating||0));
@@ -172,7 +173,7 @@ function facts(p){return [p.sub_type,p.arr,p.price,p.rating&&p.rating+'★'+(p.r
 function chips(){
   const arrs=[...new Set(P.map(p=>p.arr).filter(Boolean))].sort((a,b)=>parseInt(a)-parseInt(b));
   const sel=(id,label,opts)=>`<select class="chip${F[id]?' on':''}" data-f="${id}" aria-label="${label}"><option value="">${label}</option>${opts.map(([v,t])=>`<option value="${esc(v)}"${F[id]===String(v)?' selected':''}>${esc(t)}</option>`).join('')}</select>`;
-  $('chips').innerHTML=LISTS.filter(l=>ideas||l!=='Suggestions').map(l=>`<button class="chip${F.l===l?' on':''}" data-l="${l}"><span class="d" style="background:var(--${l})"></span>${NAME[l]||l}</button>`).join('')
+  $('chips').innerHTML=LISTS.filter(l=>ideas||l!=='Suggestions').map(l=>`<button class="chip${SEL.has(l)?' on':''}" data-l="${l}" aria-pressed="${SEL.has(l)}"><span class="d" style="background:var(--${l})"></span>${NAME[l]||l}</button>`).join('')
    +`<button class="chip${ideas?' on':''}" data-ideas="1">✨ ${ideas?'Hide':'Show'} Emily's ideas</button>`
    +(me?sel('w','Any walk',[[10,'≤ 10 min walk'],[20,'≤ 20 min walk']]):'')
    +sel('c','Type',[['Food','Food'],['Nightlife','Nightlife'],['Daytime','Daytime']])
@@ -185,9 +186,8 @@ function renderList(){
   const ps=filtered(), ids=new Set(ps.map(p=>p.id));
   Object.entries(marks).forEach(([id,m])=>{const on=ids.has(id);if(on&&!map.hasLayer(m))m.addTo(map);if(!on&&map.hasLayer(m))map.removeLayer(m);m.setIcon(icon(m.p,false))});
   const near=me&&!F.o?' · nearest first':'';
-  $('hd').innerHTML=`<span class="cnt">${ps.length} of ${P.length} places${near}</span><button id="send">Send me this list</button>`;
+  $('hd').innerHTML=`<span class="cnt">${ps.length} of ${P.length} places${near}</span>`;
   $('body').innerHTML=ps.map(card).join('')||'<div class="empty">Nothing matches. Clear a filter.</div>';$('body').scrollTop=0;
-  $('send').onclick=()=>act({a:'ls',f:{l:F.l,c:F.c,a:F.a,p:F.p,o:F.o==='a'?'':'r',q:F.q}});
   chips();
 }
 function sources(p){return (p.sources||[]).filter(u=>/^https?:/.test(u)).map(u=>`<a href="${esc(u)}" data-out>${/instagram|tiktok|youtu/.test(u)?'▶ reel':'source'}</a>`).join('')}
@@ -215,7 +215,7 @@ function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clear
 // the page); opened from the menu button, initData is set and sendData is not allowed, so a start link goes instead.
 function act(o,label){
   if(tg&&!tg.initData&&tg.platform!=='unknown'){tg.sendData(JSON.stringify(o));return}
-  const code=o.a==='mv'?`mv_${CODE[o.l]}_${o.id}`:`ls_${CODE[o.f.l]||'x'}_${(o.f.c||'x')[0]}`;
+  const code=`mv_${CODE[o.l]}_${o.id}`;
   if(!/^[\w-]{1,64}$/.test(code)){toast('Open the map from the 🗺 Paris map button to do this.');return}
   const u=`https://t.me/${D.bot}?start=${code}`;
   if(tg&&tg.openTelegramLink){tg.openTelegramLink(u);toast((label||'Sending the list')+': tap Start in the chat.')}else window.open(u,'_blank','noopener');
@@ -250,7 +250,7 @@ async function main(){
   map=L.map('map',{zoomControl:false,attributionControl:true}).setView([48.861,2.345],13);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
   P.forEach(p=>{const m=L.marker([p.lat,p.lng],{icon:icon(p,false),title:p.name});m.p=p;m.on('click',()=>detail(p));marks[p.id]=m});
-  $('chips').addEventListener('click',e=>{if(e.target.closest('[data-ideas]')){ideas=!ideas;localStorage.setItem('pb_ideas',ideas?'1':'');if(!ideas&&F.l==='Suggestions')F.l='';renderList();return}const b=e.target.closest('[data-l]');if(b){F.l=F.l===b.dataset.l?'':b.dataset.l;renderList()}});
+  $('chips').addEventListener('click',e=>{if(e.target.closest('[data-ideas]')){ideas=!ideas;localStorage.setItem('pb_ideas',ideas?'1':'');if(!ideas)SEL.delete('Suggestions');renderList();return}const b=e.target.closest('[data-l]');if(b){SEL.has(b.dataset.l)?SEL.delete(b.dataset.l):SEL.add(b.dataset.l);renderList()}});
   $('chips').addEventListener('change',e=>{const s=e.target.closest('[data-f]');if(s){F[s.dataset.f]=s.value;renderList()}});
   $('q').addEventListener('input',e=>{F.q=e.target.value;$('sbox').classList.toggle('has',!!F.q);renderList()});
   $('q').addEventListener('focus',()=>snap('half'));
